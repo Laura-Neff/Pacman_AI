@@ -275,26 +275,53 @@ class CornersProblem(search.SearchProblem):
         Stores the walls, pacman's starting position and corners.
         """
         self.walls = startingGameState.getWalls()
-        self.startingPosition = startingGameState.getPacmanPosition()
+        self.startingPosition = startingGameState.getPacmanPosition() #Pacman starting position
         top, right = self.walls.height-2, self.walls.width-2
-        self.corners = ((1,1), (1,top), (right, 1), (right, top))
+
+        #My code is here
+        self.start = (startingGameState.getPacmanPosition(), startingGameState.getFood())
+        self.start[1].data = [[False for i in row] for row in self.start[1].data] #Make everything false until self.corners
+        #self.start[1].data = list of lists. No tuples. Just one kind of element
+        self.corners = ((1, 1), (1, top), (right, 1), (right, top))
         for corner in self.corners:
-            if not startingGameState.hasFood(*corner):
-                print 'Warning: no food in corner ' + str(corner)
+            #My code is here
+            self.start[1].data[corner[0]][corner[1]] = True #We are taking the startingGameState.getFood() part of the tuple and making each corner 1,1
+            #if not startingGameState.hasFood(*corner):
+            #print 'Warning: no food in corner ' + str(corner)
         self._expanded = 0 # Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        # self.start = (startingGameState.getPacmanPosition(), startingGameState.getFood())
+
+
+    """
+       A search problem associated with finding the a path that collects all of the
+       food (dots) in a Pacman game.
+
+       A search state in this problem is a tuple ( pacmanPosition, foodGrid ) where
+         pacmanPosition: a tuple (x,y) of integers specifying Pacman's position
+         foodGrid:       a Grid (see game.py) of either True or False, specifying remaining food
+       """
+
+
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        return self.start
+
+
+        #util.raiseNotDefined()
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        return state[1].count() == 0
+
+        #util.raiseNotDefined()
 
     def getSuccessors(self, state):
         """
@@ -309,7 +336,19 @@ class CornersProblem(search.SearchProblem):
         """
 
         successors = []
-        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+        self._expanded += 1
+        for direction in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            x, y = state[0]
+            dx, dy = Actions.directionToVector(direction)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextFood = state[1].copy()
+                nextFood[nextx][nexty] = False
+                successors.append((((nextx, nexty), nextFood), direction, 1))
+        return successors
+
+        #successors = []
+        #for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
             # Here's a code snippet for figuring out whether a new position hits a wall:
             #   x,y = currentPosition
@@ -317,10 +356,10 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
+            #"*** YOUR CODE HERE ***"
 
-        self._expanded += 1
-        return successors
+        #self._expanded += 1
+        #return successors
 
     def getCostOfActions(self, actions):
         """
@@ -361,7 +400,7 @@ class AStarCornersAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, cornersHeuristic)
         self.searchType = CornersProblem
 
-class FoodSearchProblem:
+class FoodSearchProblem: ## to look at from video ##
     """
     A search problem associated with finding the a path that collects all of the
     food (dots) in a Pacman game.
