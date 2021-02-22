@@ -77,11 +77,13 @@ def tinyMazeSearch(problem):
 class Node:
     ## defines a node on a vertex
 
-    def __init__(self, vertex, problem, path_to=[], path_cost=0):
+    def __init__(self, vertex, problem, path_to=[], path_cost=0, heuristic=0, f= 0):
         self.vertex = vertex
         self.path_to = path_to
         self.path_cost = path_cost
         self.problem = problem
+        self.heuristic = heuristic
+        self.f = f
 
     def getSuccessors(self):
         return self.problem.getSuccessors(self.vertex)
@@ -93,6 +95,7 @@ class Node:
         return hash(self.vertex)
 
     def __eq__(self, other):
+        if type(other) != type(self): return False
         return self.vertex == other.vertex
 
 def depthFirstSearch(problem):
@@ -128,12 +131,11 @@ def depthFirstSearch(problem):
 
     while (not stack.isEmpty()):
         current = stack.pop()
+        if (current.isGoalState()): return current.path_to  # be sure to check this before expanding the state
         if(current not in traversed):
+
             neighbors_actions = [(Node(neighbor, problem), action) for neighbor, action, cost in current.getSuccessors()]
             traversed.add(current)
-
-            if (current.isGoalState()):
-                return current.path_to
 
             for neighbor, action in neighbors_actions: #check the whole graph and mark the traversed ones
                     neighbor.path_to = copy.copy(current.path_to)
@@ -157,12 +159,11 @@ def breadthFirstSearch(problem):
 
     while (not queue.isEmpty()):
         current = queue.pop()
+        if (current.isGoalState()): return current.path_to  # be sure to check this before expanding the state
         if(current not in traversed):
+
             neighbors_actions = [(Node(neighbor, problem), action) for neighbor, action, cost in current.getSuccessors()]
             traversed.add(current)
-
-            if (current.isGoalState()):
-                return current.path_to
 
             for neighbor, action in neighbors_actions: #check the whole graph and mark the traversed ones
                     neighbor.path_to = copy.copy(current.path_to)
@@ -224,7 +225,54 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    untraversed = util.PriorityQueue()
+    traversed = set()
+
+
+    #f = h + g --> total cost from current node to goal node
+    #g = path cost = original node to current node
+    #h = heuristic --> estimated guess of cost of current node to goal node
+
+    # item, priority = PriorityQueue constructor
+
+    initial_vertex = Node(problem.getStartState(), problem)  # initial vertex
+
+    untraversed.push(initial_vertex, initial_vertex.f)  # stores initial vertex. Priority = path cost
+    #We are prioritizing by f = g + h!!
+
+    while (not untraversed.isEmpty()):
+        current = untraversed.pop()
+        if current in traversed:
+            continue  # check if we already saw the item
+
+        if (current.isGoalState()):
+            return current.path_to
+
+        traversed.add(current)
+
+        neighbors_actions_cost = [(Node(neighbor, problem), action, cost) for neighbor, action, cost in
+                                  current.getSuccessors()]
+
+        for neighbor, action, cost in neighbors_actions_cost:  # check the whole graph and mark the traversed ones
+            neighbor.path_to = copy.copy(current.path_to)
+            neighbor.path_to.append(action)
+            neighbor.path_cost = current.path_cost + cost #This is g
+            neighbor.heuristic = heuristic(neighbor.vertex, problem) #this is h
+            neighbor.f = neighbor.heuristic + neighbor.path_cost
+
+            if (neighbor not in traversed):
+                untraversed.push(neighbor, neighbor.f)
+
+            if (current not in traversed or untraversed.heap):
+                untraversed.push(current, current.f)
+
+    return None
+
+
+
+
+    #util.raiseNotDefined()
 
 
 # Abbreviations
