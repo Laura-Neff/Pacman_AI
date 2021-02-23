@@ -1,3 +1,9 @@
+
+"LAURA NEFF"
+"laura.neff@emory.edu/lneff2/2304477"
+"THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING "
+"ANY# SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. LAURA NEFF"
+
 # searchAgents.py
 # ---------------
 # Licensing Information:  You are free to use or extend these projects for 
@@ -41,6 +47,7 @@ from game import Actions
 import util
 import time
 import search
+import copy
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -110,7 +117,7 @@ class SearchAgent(Agent):
         if self.searchFunction == None: raise Exception, "No search function provided for SearchAgent"
         starttime = time.time()
         problem = self.searchType(state) # Makes a new search problem
-        self.actions  = self.searchFunction(problem) # Find a path
+        self.actions = self.searchFunction(problem) # Find a path
         totalCost = problem.getCostOfActions(self.actions)
         print('Path found with total cost of %d in %.1f seconds' % (totalCost, time.time() - starttime))
         if '_expanded' in dir(problem): print('Search nodes expanded: %d' % problem._expanded)
@@ -280,47 +287,32 @@ class CornersProblem(search.SearchProblem):
 
         #My code is here
         self.start = (startingGameState.getPacmanPosition(), startingGameState.getFood())
-        self.start[1].data = [[False for i in row] for row in self.start[1].data] #Make everything false until self.corners
-        #self.start[1].data = list of lists. No tuples. Just one kind of element
-        self.corners = ((1, 1), (1, top), (right, 1), (right, top))
-        for corner in self.corners:
+        self.start[1].data = [[False for i in row] for row in self.start[1].data]
+        #Make everything false until you get to a corner, an element in self.corners
+        #self.start[1].data = list of lists. Each list inside contains tuples
+        self.corners = []
+        for corner in [(1, 1), (1, top), (right, 1), (right, top)]:
             #My code is here
-            self.start[1].data[corner[0]][corner[1]] = True #We are taking the startingGameState.getFood() part of the tuple and making each corner 1,1
-            #if not startingGameState.hasFood(*corner):
-            #print 'Warning: no food in corner ' + str(corner)
-        self._expanded = 0 # Number of search nodes expanded
-        # Please add any code here which you would like to use
-        # in initializing the problem
-        "*** YOUR CODE HERE ***"
-        # self.start = (startingGameState.getPacmanPosition(), startingGameState.getFood())
+            x,y = corner
+            if self.walls[x][y] == False:
+                self.start[1].data[x][y] = True #We are taking the startingGameState.getFood() part of the
+                                                # tuple and making each corner True, True {(1,1) in binary terms}
+                self.corners.append(corner)
+            else:
+                print("Warning: wall in corner, cannot place food")
 
-
-    """
-       A search problem associated with finding the a path that collects all of the
-       food (dots) in a Pacman game.
-
-       A search state in this problem is a tuple ( pacmanPosition, foodGrid ) where
-         pacmanPosition: a tuple (x,y) of integers specifying Pacman's position
-         foodGrid:       a Grid (see game.py) of either True or False, specifying remaining food
-       """
-
+        self._expanded = 0
 
 
     def getStartState(self):
         "Returns the start state (in your state space, not the full Pacman state space)"
-        "*** YOUR CODE HERE ***"
-
         return self.start
-
-
         #util.raiseNotDefined()
 
     def isGoalState(self, state):
         "Returns whether this search state is a goal state of the problem"
-        "*** YOUR CODE HERE ***"
-
-        return state[1].count() == 0
-
+        foods = sum([item for sublist in state[1].data for item in sublist])
+        return foods == 0
         #util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -347,33 +339,19 @@ class CornersProblem(search.SearchProblem):
                 successors.append((((nextx, nexty), nextFood), direction, 1))
         return successors
 
-        #successors = []
-        #for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
-
-            #"*** YOUR CODE HERE ***"
-
-        #self._expanded += 1
-        #return successors
 
     def getCostOfActions(self, actions):
         """
         Returns the cost of a particular sequence of actions.  If those actions
         include an illegal move, return 999999.  This is implemented for you.
         """
-        if actions == None: return 999999
+        if actions is None: return 999999
         x,y= self.startingPosition
         for action in actions:
             dx, dy = Actions.directionToVector(action)
             x, y = int(x + dx), int(y + dy)
             if self.walls[x][y]: return 999999
         return len(actions)
-
 
 def cornersHeuristic(state, problem):
     """
@@ -389,10 +367,63 @@ def cornersHeuristic(state, problem):
     it should be admissible (as well as consistent).
     """
     corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)e
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    foodGrid = state[1].data
+
+    #goals = list of the vertices of the food pellets
+    #To use the enumerate(item) function in a for loop, we need to create a new variable called rowIndex to store the
+    # counts of the rows found in enumerate(item)
+
+    #In this block of code, any time a value in the 2D array is "True", store the vertex of it found through enumerating
+    # the 2D array and enumerating the rows of 2D array
+    goals = set()
+    for rowIndex, row in enumerate(foodGrid):
+         for columnIndex, column in enumerate(row):
+             if column:
+                 goals.add((rowIndex, columnIndex))
+
+    #position = state
+
+    #This block of code treats each pellet as a separate goal rather than eating all of the pellets as one goal.
+    #The Manhattan Heuristic function is applied and to save expansions, the closest goal to start state is calculated
+    #The state changes to the closest goal heuristic-wise
+    distances = 0
+    min_dist = float("inf")
+    min_point = None
+    if len(goals) == 0: return 0
+    for x,y in goals:
+        d = abs(state[0][0] - x) + abs(state[0][1] - y)
+        if d < min_dist: #This uses a minimum function to find out out of all the goals, which one is closest
+            min_dist = d
+            min_point = (x,y)
+    if min_point is None:
+        raise Exception("No closest point found.")
+
+    #Now, the same idealogy behind the above is applied for the remaining goals. Now that the closest goal was found to
+    #the initial position, the position changes to the closest goal. Now the closest goal to the new position is found
+    #and this process continues for each remaining goal left in the set of goals. During each step, the corresponding
+    #heuristic of the closest goal is added to the variable representing the previously added heuristics of the past
+    #closest goals. This is stored in the distance variable.
+    # Every time a new goal is reached, it is removed from the set.
+    distances += min_dist #Store the corresponding heuristic of the just reached goal
+    remaining = goals
+    remaining.remove(min_point) #Remove the goal just reached from the set
+    atpoint = min_point #Cloest goal to first position
+    while(remaining):
+        min_dist = float("inf")
+        min_point = None
+        for x,y in remaining:
+            d = abs(atpoint[0] - x) + abs(atpoint[1] - y)
+            if d < min_dist:
+                min_dist = d
+                min_point = (x, y)
+        distances += min_dist
+        remaining.remove(min_point)
+        atpoint = min_point
+    return distances #This is the most important part to making the heuristic admissible-- scaling it!
+                         #A heuristic must be smaller than the actual path to a goal. Adding the extra security of
+                         #scaling it down ensures this!
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -400,7 +431,7 @@ class AStarCornersAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, cornersHeuristic)
         self.searchType = CornersProblem
 
-class FoodSearchProblem: ## to look at from video ##
+class FoodSearchProblem:
     """
     A search problem associated with finding the a path that collects all of the
     food (dots) in a Pacman game.
@@ -481,9 +512,50 @@ def foodHeuristic(state, problem):
       problem.heuristicInfo['wallCount'] = problem.walls.count()
     Subsequent calls to this heuristic can access problem.heuristicInfo['wallCount']
     """
-    position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    foodGrid = state[1].data
+
+    # goals = [x for x in foodGrid if x is True]
+
+    goals = set()
+    for rowIndex, row in enumerate(foodGrid):
+        for columnIndex, column in enumerate(row):
+            if column:
+                goals.add((rowIndex, columnIndex))
+
+    # position = state
+
+    # distances = list()
+    distances = 0
+    min_dist = float("inf")
+    min_point = None
+    if len(goals) == 0: return 0
+    for x, y in goals:
+        d = abs(state[0][0] - x) + abs(state[0][1] - y)
+        if d < min_dist:
+            min_dist = d
+            min_point = (x, y)
+    if min_point is None:
+        raise Exception("No closest point found.")
+
+    #print("closest point to goal: " + str(min_point))
+    distances += min_dist
+    remaining = goals
+    remaining.remove(min_point)
+    atpoint = min_point
+    while (remaining):
+        min_dist = float("inf")
+        min_point = None
+        for x, y in remaining:
+            d = abs(atpoint[0] - x) + abs(atpoint[1] - y)
+            if d < min_dist:
+                min_dist = d
+                min_point = (x, y)
+        distances += min_dist
+        remaining.remove(min_point)
+        atpoint = min_point
+        #print("next point: " + str(atpoint))
+    #print("pacman: " + str(state[0]) +", distance:" + str(distances))
+    return 0.5*distances
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -510,8 +582,29 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def isFood(node):
+            x,y = node.vertex
+            return food[x][y]
+
+        #Use BFS to find closest dot path because BFS operates by finding shallowest node first!
+        traversed = set()
+        queue = util.Queue()
+        initial_vertex = search.Node(problem.getStartState(), problem)  # initial vertex
+        queue.push(initial_vertex)  # stores initial vertex
+
+        while (not queue.isEmpty()):
+            current = queue.pop()
+            if (isFood(current)): return current.path_to  # be sure to check this before expanding the state
+            if (current not in traversed):
+                neighbors_actions = [(search.Node(neighbor, problem), action) for neighbor, action, cost in
+                                     current.getSuccessors()]
+                traversed.add(current)
+
+                for neighbor, action in neighbors_actions:  # check the whole graph and mark the traversed ones
+                    neighbor.path_to = copy.copy(current.path_to)
+                    neighbor.path_to.append(action)
+                    queue.push(neighbor)  # push the untraversed neighbors to the queue
+        return None
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """

@@ -1,3 +1,9 @@
+
+"LAURA NEFF"
+"laura.neff@emory.edu/lneff2/2304477"
+"THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING "
+"ANY# SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. LAURA NEFF"
+
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for 
@@ -112,7 +118,6 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    "*** YOUR CODE HERE ***"
     #use only the methods here
     #Only Pacman's position matters
     #problem = object of SearchProblem
@@ -142,6 +147,7 @@ def depthFirstSearch(problem):
                     neighbor.path_to.append(action)
                     stack.push(neighbor) #push the untraversed neighbors to the stack
 
+    #raise Exception("No path to goal found")
     return None
 
     #util.raiseNotDefined()
@@ -150,7 +156,7 @@ def breadthFirstSearch(problem):
     """
     Search the shallowest nodes in the search tree first.
     """
-    "*** YOUR CODE HERE ***"
+
 
     traversed = set()
     queue = util.Queue()
@@ -168,8 +174,9 @@ def breadthFirstSearch(problem):
             for neighbor, action in neighbors_actions: #check the whole graph and mark the traversed ones
                     neighbor.path_to = copy.copy(current.path_to)
                     neighbor.path_to.append(action)
-                    queue.push(neighbor) #push the untraversed neighbors to the stack
+                    queue.push(neighbor) #push the untraversed neighbors to the queue
 
+    #raise Exception("No path to goal found")
     return None
 
 
@@ -178,7 +185,6 @@ def breadthFirstSearch(problem):
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
-    "*** YOUR CODE HERE ***"
 
     traversed = set()
     priority_queue = util.PriorityQueue()
@@ -209,7 +215,7 @@ def uniformCostSearch(problem):
             if(current not in traversed or priority_queue.heap):
                 priority_queue.push(current, current.path_cost)
 
-
+    #raise Exception("No path to goal found")
     return None
 
 
@@ -224,7 +230,6 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
-    "*** YOUR CODE HERE ***"
 
     untraversed = util.PriorityQueue()
     traversed = set()
@@ -267,6 +272,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             if (current not in traversed or untraversed.heap):
                 untraversed.push(current, current.f)
 
+    #raise Exception("No path to goal found")
     return None
 
 
