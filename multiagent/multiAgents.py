@@ -17,7 +17,7 @@
 
 from util import manhattanDistance
 from game import Directions
-import random, util
+import random, util, copy, math
 
 from game import Agent
 
@@ -54,6 +54,11 @@ class ReflexAgent(Agent):
 
         return legalMoves[chosenIndex]
 
+    @staticmethod
+    def distance(num1, num2):
+        distance = math.sqrt(((num1[0] - num2[0]) ** 2) + ((num1[1] - num2[1]) ** 2))
+        return distance;
+
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
@@ -78,12 +83,96 @@ class ReflexAgent(Agent):
         currentFood = currentGameState.getFood() #food available from current state
         newFood = successorGameState.getFood() #food available from successor state (excludes food@successor) 
         currentCapsules=currentGameState.getCapsules() #power pellets/capsules available from current state
-        newCapsules=successorGameState.getCapsules() #capsules available from successor (excludes capsules@successor)
+        newCapsules=successorGameState.getCapsules() #power pellet capsules available from successor (excludes capsules@successor)
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+
+        ghostPositions = successorGameState.getGhostPositions()
+
+        scaredGhostWeight = 5 #will get better score by a lot
+        capsuleWeight = 3 #for opportunity for better score
+        foodWeight = 2 #will increase score, but not by much
+
+        oh_no_a_ghost = .001
+
+        pacman_guinea_pig = copy.copy(currentGameState)
+
+        calcScore1 = 0
+        calcScore2 = 0
+
+
+        #if(newScaredTimes > 0 and one of the successor positions is a ghost state):
+            #change Pacman guinea pig's position to that and calculate score
+
+        for k in newScaredTimes:
+            if (k > 0):
+               for j in ghostPositions:
+                    if(ReflexAgent.distance(newPos,j) == 0):
+                        pacman_guinea_pig.pacmanPosition = j
+                        calcScore1 = pacman_guinea_pig.getScore() * scaredGhostWeight
+                        #print(calcScore1)
+
+        for k in newScaredTimes:
+            if (k == 0):
+                for j in ghostPositions:
+                        #print(i)
+                        #print(ghostPositions)
+                    if(manhattanDistance(newPos, j) < 3):
+                        #newPos.remove(i) Can we do this according to the algorithm of eval functions?
+                        calcScore2 = successorGameState.getScore() * oh_no_a_ghost
+                        #print(calcScore2)
+
+        if newFood[newPos[0]:newPos[1]] is True:
+            calcScore3 = successorGameState.getScore() * foodWeight
+            #print(calcScore3)
+
+
+
+
+
+
+
+
+
+
+        #print(currentGameState.getPacmanPosition())
+
+
+
+
+
+
+
+
+
+
+
+
+        #other factors to consider:
+            #distance from alive ghost
+            #if alive ghost is in the successor state, turn away
+        #if from the successor state, there's a lot of food, go in that direction maybe than other
+
+
+
+
+
+
+
+
+        #print("successorGameState: ", successorGameState.getPacmanPosition())
+        #print("ghost position: ", ghostPositions)
+        #print("newPos: ", newPos)
+        # print("currentFood: ", currentFood)
+        # print("newFood: " , newFood)
+        # print("currentCapsules ", currentCapsules)
+        # print("newCapsules: " , newCapsules)
+        # print("newGhostStates: " , newGhostStates)
+        # print("newScaredTimes: ", newScaredTimes)
+
+        #return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
     """
