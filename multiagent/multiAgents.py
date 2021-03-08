@@ -91,13 +91,13 @@ class ReflexAgent(Agent):
 
         ghostPositions = successorGameState.getGhostPositions()
 
-        scaredGhostWeight = 5 #will get better score by a lot
-        capsuleWeight = 3 #for opportunity for better score
-        foodWeight = 2 #will increase score, but not by much
+        scaredGhostWeight = .5 #will get better score by a lot
+        capsuleWeight = .3 #for opportunity for better score
+        foodWeight = .2 #will increase score, but not by much
 
-        oh_no_a_ghost = .001
+        oh_no_a_ghost = .1
 
-        pacman_guinea_pig = copy.copy(currentGameState)
+        pacman_guinea_pig = successorGameState # copy.copy(currentGameState)
 
         calcScore1 = 0
         calcScore2 = 0
@@ -106,29 +106,41 @@ class ReflexAgent(Agent):
         #if(newScaredTimes > 0 and one of the successor positions is a ghost state):
             #change Pacman guinea pig's position to that and calculate score
 
-        for k in newScaredTimes:
-            if (k > 0):
-               for j in ghostPositions:
-                    if(ReflexAgent.distance(newPos,j) == 0):
-                        pacman_guinea_pig.pacmanPosition = j
-                        calcScore1 = pacman_guinea_pig.getScore() * scaredGhostWeight
-                        #print(calcScore1)
+        for ghost in newGhostStates:
+            dist_to = ReflexAgent.distance(newPos, ghost.configuration.pos)
+            if ghost.scaredTimer > 0:
+                if dist_to == 0:
+                    pacman_guinea_pig.pacmanPosition = ghost.configuration.pos
+                    calcScore1 = pacman_guinea_pig.getScore() * scaredGhostWeight
+                    print(calcScore1)
+            elif dist_to < 3:
+                calcScore2 = successorGameState.getScore() * oh_no_a_ghost
+                print(calcScore2)
 
-        for k in newScaredTimes:
-            if (k == 0):
-                for j in ghostPositions:
-                        #print(i)
-                        #print(ghostPositions)
-                    if(manhattanDistance(newPos, j) < 3):
-                        #newPos.remove(i) Can we do this according to the algorithm of eval functions?
-                        calcScore2 = successorGameState.getScore() * oh_no_a_ghost
-                        #print(calcScore2)
+        # for k in newScaredTimes:
+        #     if (k > 0):
+        #        for j in ghostPositions:
+        #             if(ReflexAgent.distance(newPos,j) == 0):
+        #                 pacman_guinea_pig.pacmanPosition = j
+        #                 calcScore1 = pacman_guinea_pig.getScore() * scaredGhostWeight
+        #                 print(calcScore1)
+        #
+        # for k in newScaredTimes:
+        #     if (k == 0):
+        #         for j in ghostPositions:
+        #                 #print(i)
+        #                 #print(ghostPositions)
+        #             if(manhattanDistance(newPos, j) < 3):
+        #                 #newPos.remove(i) Can we do this according to the algorithm of eval functions?
+        #                 calcScore2 = successorGameState.getScore() * oh_no_a_ghost
+        #                 print(calcScore2)
 
-        if newFood[newPos[0]:newPos[1]] is True:
+        if newFood[newPos[0]][newPos[1]] is True:
             calcScore3 = successorGameState.getScore() * foodWeight
             #print(calcScore3)
 
 
+        #but if any of these scores is less than normal score, go with normal score
 
 
 
@@ -172,7 +184,7 @@ class ReflexAgent(Agent):
         # print("newGhostStates: " , newGhostStates)
         # print("newScaredTimes: ", newScaredTimes)
 
-        #return successorGameState.getScore()
+        return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
     """
