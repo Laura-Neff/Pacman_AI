@@ -15,6 +15,12 @@
 # Modified by Eugene Agichtein for CS325 Sp 2014 (eugene@mathcs.emory.edu)
 #
 
+
+"LAURA NEFF"
+"laura.neff@emory.edu/lneff2/2304477"
+"THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING "
+"ANY# SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. LAURA NEFF"
+
 from util import manhattanDistance
 from game import Directions
 import random, util, copy, math
@@ -96,7 +102,6 @@ class ReflexAgent(Agent):
         "*** YOUR CODE HERE ***"
 
         #Evaluation function = w1*f(x) + w2*f(x) + ... wi*f(x)
-
 
 
         ghostPositions = successorGameState.getGhostPositions()
@@ -201,6 +206,45 @@ class MinimaxAgent(MultiAgentSearchAgent):
       Your minimax agent (question 2)
     """
 
+    #My code is here
+    # def maxValue(self, gameState):
+    #     #Add terminal condition
+    #     value = float('-inf')
+    #     PacmanActions = gameState.getLegalActions()
+    #
+    #     setOfSuccessors = set()
+    #     for i in PacmanActions:
+    #         setOfSuccessors.add(gameState.generateSuccessor(0, i))
+    #         #Returns the successor game state after an agent takes an action
+    #
+    #     for i in setOfSuccessors:
+    #         value = max(value, minValue(i) #But is Pacman's position the value?????
+    #
+    #     return value
+    #
+    #
+    # def minValue(self, gameState):
+    #     #Add terminal condition
+    #     numAgents = gameState.getNumAgents()
+    #     value = float('inf')
+    #     GhostActions = 0
+    #     for i in numAgents:
+    #         if i is 0:
+    #             continue
+    #         GhostActions += gameState.getLegalActions(i)
+    #
+    #     setOfSuccessors = set()
+    #     for i in GhostActions:
+    #         for j in numAgents:
+    #             setOfSuccessors.add(gameState.generateSucessor(j,i))
+    #
+    #     for i in setOfSuccessors:
+    #         value = max(value, maxValue(i))
+    #
+    #     return value
+
+
+
     def getAction(self, gameState):
         """
           Returns the minimax action from the current gameState using self.depth
@@ -219,7 +263,53 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        def maxValue(self, gameState):
+            # Add terminal condition
+            value = float('-inf')
+            PacmanActions = gameState.getLegalActions()
+
+            setOfSuccessors = set()
+            for i in PacmanActions:
+                setOfSuccessors.add(gameState.generateSuccessor(0, i))
+                # Returns the successor game state after an agent takes an action
+
+            for i in setOfSuccessors:
+                value = max(value, minValue(i))  # But is Pacman's position the value?????
+
+            return value
+
+        def minValue(self, gameState):
+            # Add terminal condition
+            numAgents = gameState.getNumAgents()
+            value = float('inf')
+            GhostActions = 0
+            for i in numAgents:
+                if i is 0:
+                    continue
+                GhostActions += gameState.getLegalActions(i)
+
+            setOfSuccessors = set()
+            for i in GhostActions:
+                for j in numAgents:
+                    setOfSuccessors.add(gameState.generateSucessor(j, i))
+
+            for i in setOfSuccessors:
+                value = max(value, maxValue(i))
+
+            return value
+
+
+
+
+
+
+        #successorGameState = gameState.generatePacmanSuccessor(0, action)
+
+
+
+
+        #util.raiseNotDefined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
