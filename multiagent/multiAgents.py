@@ -95,7 +95,7 @@ class ReflexAgent(Agent):
 
         "*** YOUR CODE HERE ***"
 
-
+        #Evaluation function = w1*f(x) + w2*f(x) + ... wi*f(x)
 
 
 
