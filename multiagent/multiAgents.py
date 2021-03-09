@@ -90,125 +90,81 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         ateFood = sum([item for sublist in currentFood.data for item in sublist]) - sum([item for sublist in newFood.data for item in sublist])
-        ateCapsule = len(newCapsules) - len(currentCapsules)
-
+        ateCapsule = len(currentCapsules) - len(newCapsules)
 
 
         "*** YOUR CODE HERE ***"
 
+
+
+
+
         ghostPositions = successorGameState.getGhostPositions()
 
-        scaredGhostWeight = .5 #will get better score by a lot
-        capsuleWeight = .3 #for opportunity for better score
-        foodWeight = .2 #will increase score, but not by much
+        scaredGhostIsHereWeight = 20 #will get better score by a lot
+        scaredGhostNearWeight = 15  #opportunity to get better score
+        capsuleAteWeight = 10  #opportunity for better score
+        capsuleCloseWeight = 8 + random.random() #opportunity for better score
+        foodAteWeight = 6 #will increase score, but not by much
+        foodCloseWeight = 1 + random.random()/2
 
-        #try reciprocal distances if this doesn't work
 
-        oh_no_a_ghost = .1
 
-        pacman_guinea_pig = successorGameState # copy.copy(currentGameState)
+        oh_no_a_ghost = -20 + random.random()
+
+        legalActionCount = successorGameState.getLegalActions()
+        legalActionWeight = -15
+        calcScore8 = 0
+        if legalActionCount < 2:
+            calcScore8 = abs(successorGameState.getScore()) * legalActionWeight
 
         calcScore1 = 0
         calcScore2 = 0
+        calcScore3 = 0
 
-
-        #if(newScaredTimes > 0 and one of the successor positions is a ghost state):
-            #change Pacman guinea pig's position to that and calculate score
 
         for ghost in currentGhostStates:
             dist_to = ReflexAgent.distance(newPos, ghost.configuration.pos)
-            if ghost.scaredTimer > 0:
-                if dist_to < 3:
-                    pacman_guinea_pig.pacmanPosition = ghost.configuration.pos
-                    calcScore1 = pacman_guinea_pig.getScore() * scaredGhostWeight
-                    print("near scared ghost ", calcScore1)
-                if dist_to==0:
-                    print("U A SNACC")
-            elif dist_to < 3:
-                calcScore2 = successorGameState.getScore() * oh_no_a_ghost
-                print("about to die ", calcScore2)
+            if ghost.scaredTimer > 1:
+                calcScore1 += abs(successorGameState.getScore()) * scaredGhostNearWeight * 1/(dist_to+.1)
 
-        # for k in newScaredTimes:
-        #     if (k > 0):
-        #        for j in ghostPositions:
-        #             if(ReflexAgent.distance(newPos,j) == 0):
-        #                 pacman_guinea_pig.pacmanPosition = j
-        #                 calcScore1 = pacman_guinea_pig.getScore() * scaredGhostWeight
-        #                 print(calcScore1)
-
-        # for k in newScaredTimes:
-        #     if (k == 0):
-        #         for j in ghostPositions:
-        #                 #print(i)
-        #                 #print(ghostPositions)
-        #             if(manhattanDistance(newPos, j) < 3):
-        #                 #newPos.remove(i) Can we do this according to the algorithm of eval functions?
-        #                 calcScore2 = successorGameState.getScore() * oh_no_a_ghost
-        #                 print(calcScore2)
-
-        # test = newFood[newPos[0]][newPos[1]]
-        # print(test)
-
-        # numberedFood = set()
-        # for rowIndex, row in enumerate(currentFood):
-        #     for columnIndex, column in enumerate(row):
-        #         if column:
-        #             numberedFood.add((rowIndex, columnIndex))
-
-        #print(numberedFood)
-
-        #print(newPos[0], newPos[1])
-
-        calcScore3 = successorGameState.getScore() * foodWeight * ateFood
-        if(calcScore3):
-            print("MMMMMM", calcScore3)
+                if dist_to == 0:
+                   calcScore3 += abs(successorGameState.getScore()) * scaredGhostIsHereWeight
+            else:
+                calcScore2 += abs(successorGameState.getScore()) * oh_no_a_ghost * 1/(min(dist_to,5)+.1)
 
 
-        #but if any of these scores is less than normal score, go with normal score
+        foodPositions = set()
+        for rowIndex, row in enumerate(currentFood.data):
+            for columnIndex, column in enumerate(row):
+                if column:
+                    foodPositions.add((rowIndex, columnIndex))
+
+
+        dist_to_food = sum([1/(.1 + ReflexAgent.distance(newPos, i)) for i in foodPositions])
+
+        calcScore4 = abs(successorGameState.getScore()) * foodAteWeight * ateFood
+
+        calcScore5 = abs(successorGameState.getScore()) * foodCloseWeight * dist_to_food
+
+
+
+        capsulePositions = set()
+        for rowIndex, row in enumerate(currentCapsules):
+            for columnIndex, column in enumerate(row):
+                if column:
+                    foodPositions.add((rowIndex, columnIndex))
+
+        dist_to_capsule = sum([1/(.1 + ReflexAgent.distance(newPos, i)) for i in capsulePositions])
+
+        calcScore6 = abs(successorGameState.getScore()) * capsuleAteWeight * ateCapsule
+
+        calcScore7 = abs(successorGameState.getScore()) * capsuleCloseWeight * dist_to_capsule
 
 
 
 
-
-
-
-
-        #print(currentGameState.getPacmanPosition())
-
-
-
-
-
-
-
-
-
-
-
-
-        #other factors to consider:
-            #distance from alive ghost
-            #if alive ghost is in the successor state, turn away
-        #if from the successor state, there's a lot of food, go in that direction maybe than other
-
-
-
-
-
-
-
-
-        #print("successorGameState: ", successorGameState.getPacmanPosition())
-        #print("ghost position: ", ghostPositions)
-        #print("newPos: ", newPos)
-        # print("currentFood: ", currentFood)
-        # print("newFood: " , newFood)
-        # print("currentCapsules ", currentCapsules)
-        # print("newCapsules: " , newCapsules)
-        # print("newGhostStates: " , newGhostStates)
-        # print("newScaredTimes: ", newScaredTimes)
-
-        return successorGameState.getScore()
+        return calcScore1 + calcScore2 + calcScore3 + calcScore4 + calcScore5 + calcScore6 + calcScore7 + calcScore8
 
 def scoreEvaluationFunction(currentGameState):
     """
