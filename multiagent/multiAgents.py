@@ -26,6 +26,7 @@ from game import Directions
 import random, util, copy, math
 
 from game import Agent
+import time
 
 class ReflexAgent(Agent):
     """
@@ -264,40 +265,81 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
 
-        def maxValue(self, gameState):
+        def pacValue(gameState, agent, depth):
             # Add terminal condition
-            value = float('-inf')
-            PacmanActions = gameState.getLegalActions()
-
-            setOfSuccessors = set()
-            for i in PacmanActions:
-                setOfSuccessors.add(gameState.generateSuccessor(0, i))
+            v = float('inf')
+            #print("minimize other ghosts")
+            PacmanActions = gameState.getLegalActions(agent)
+            if "Stop" in PacmanActions:
+                PacmanActions.remove("Stop")
+            if len(PacmanActions) == 0:
+                return self.evaluationFunction(gameState)
+            for action in PacmanActions:
+                #print("pacman moves "+action)
+                successor = gameState.generateSuccessor(agent, action)
+                newv = value(successor, agent + 1, depth-1)
+                #print("pacman got newv:",newv)
+                v = min(v, newv)
                 # Returns the successor game state after an agent takes an action
+            #print("pacman says:",v)
+            return v
 
-            for i in setOfSuccessors:
-                value = max(value, minValue(i))  # But is Pacman's position the value?????
-
-            return value
-
-        def minValue(self, gameState):
+        def ghostValue(gameState, agent, depth):
             # Add terminal condition
-            numAgents = gameState.getNumAgents()
-            value = float('inf')
-            GhostActions = 0
-            for i in numAgents:
-                if i is 0:
-                    continue
-                GhostActions += gameState.getLegalActions(i)
+            if agent+1>=gameState.getNumAgents():
+                #print("maximize pacman")
+                v = float('-inf')
+                minimize=False
+            else:
+                #print("min other ghost")
+                v = float('inf')
+                minimize=True
+            if len(gameState.getLegalActions(agent)) == 0:
+                return self.evaluationFunction(gameState)
+            for action in gameState.getLegalActions(agent):
+                #print("ghost "+str(agent)+" moves " +action)
+                successor = gameState.generateSuccessor(agent, action)
+                newv = value(successor, agent+1, depth)
+                #print("ghost got newv:",newv)
+                if minimize:
+                    v = min(v, newv)
+                else:
+                    v = max(v, newv)
+            #print("ghost says",v)
+            return v
 
-            setOfSuccessors = set()
-            for i in GhostActions:
-                for j in numAgents:
-                    setOfSuccessors.add(gameState.generateSucessor(j, i))
+        def value(gameState, agent=0, depth=self.depth):
+            ##TODO: find terminal state
+            #time.sleep(0.05)
+            if agent >= gameState.getNumAgents():
+                #print("next level")
+                return value(gameState, 0, depth - 1)
+            #print("agent="+str(agent)+", depth="+str(depth))
+            if (depth<1 or gameState.isWin() or gameState.isLose()):
+                #print("term state")
+                return self.evaluationFunction(gameState)
+            if agent==0:
+                #print("pacman")
+                return pacValue(gameState, agent, depth)
+            elif agent < gameState.getNumAgents():
+                #print("ghost")
+                return ghostValue(gameState, agent, depth)
+            else:
+                raise Exception("something don goofed.")
 
-            for i in setOfSuccessors:
-                value = max(value, maxValue(i))
 
-            return value
+        actions_values = []
+        pacman_actions = gameState.getLegalActions()
+        if "Stop" in pacman_actions:
+            pacman_actions.remove("Stop")
+        for action in pacman_actions:
+            successor = gameState.generateSuccessor(0,action)
+            actions_values.append((action,value(successor)))
+        selected = sorted(actions_values,key=lambda x:x[1],reverse=True)[0]
+        print(selected)
+        #time.sleep(0.5)
+        return selected[0]
+
 
 
 

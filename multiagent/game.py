@@ -695,6 +695,9 @@ class Game:
                     self.unmute()
                     return
             else:
+                if action not in ["North","South","East","West","Stop"]:
+                    print(action)
+                    raise Exception("Laura stopped.")
                 self.state = self.state.generateSuccessor( agentIndex, action )
 
             # Change the display
