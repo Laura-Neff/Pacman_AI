@@ -293,15 +293,96 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
-      Your minimax agent with alpha-beta pruning (question 3)
+        Your minimax agent with alpha-beta pruning (question 3)
     """
-
     def getAction(self, gameState):
         """
-          Returns the minimax action using self.depth and self.evaluationFunction
+            Returns the minimax action from the current gameState using self.depth
+            and self.evaluationFunction.
+
+            Here are some method calls that might be useful when implementing minimax.
+
+            gameState.getLegalActions(agentIndex):
+            Returns a list of legal actions for an agent
+            agentIndex=0 means Pacman, ghosts are >= 1
+
+            gameState.generateSuccessor(agentIndex, action):
+            Returns the successor game state after an agent takes an action
+
+            gameState.getNumAgents():
+            Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        def pacValue(gameState, agent, depth, alpha, beta):
+            # Add terminal condition
+            v = []
+            #print("minimize other ghosts")
+            PacmanActions = gameState.getLegalActions(agent)
+            if "Stop" in PacmanActions:
+                PacmanActions.remove("Stop")
+            if len(PacmanActions) == 0:
+                return self.evaluationFunction(gameState)
+            for action in PacmanActions:
+                #print("pacman moves "+action)
+                successor = gameState.generateSuccessor(agent, action)
+                newv, _ = value(successor, agent + 1, depth, alpha, beta)
+                #print("pacman got newv:",newv)
+                v.append((newv,action))
+                highest_v = max(v)
+                if highest_v[0] > beta:
+                    return highest_v
+                alpha = max(alpha,highest_v[0])
+                # Returns the successor game state after an agent takes an action
+            #print("pacman says:",v)
+            return max(v)
+
+        def ghostValue(gameState, agent, depth, alpha, beta):
+            # Add terminal condition
+            v = []
+            if agent+1>=gameState.getNumAgents():
+                nextAgent = 0
+                nextDepth = depth - 1
+            else:
+                nextAgent = agent + 1
+                nextDepth = depth
+            if len(gameState.getLegalActions(agent)) == 0:
+                return self.evaluationFunction(gameState)
+            for action in gameState.getLegalActions(agent):
+                #print("ghost "+str(agent)+" moves " +action)
+                successor = gameState.generateSuccessor(agent, action)
+                newv, _ = value(successor, nextAgent, nextDepth, alpha, beta)
+                v.append((newv,action))
+                lowest_v = min(v)
+                if lowest_v[0] < alpha:
+                    return lowest_v
+                beta = min(beta, lowest_v[0])
+                #print("ghost got newv:",newv)
+            #print("ghost says",v)
+            return min(v)
+
+        def value(gameState, agent=0, depth=self.depth,alpha=float("-inf"), beta=float("inf")):
+            ##TODO: find terminal state
+            #time.sleep(0.05)
+            if agent >= gameState.getNumAgents():
+                #print("next level")
+                return value(gameState, 0, depth - 1)
+            #print("agent="+str(agent)+", depth="+str(depth))
+            if (depth<1 or gameState.isWin() or gameState.isLose()):
+                #print("term state")
+                return (self.evaluationFunction(gameState),None)
+            if agent==0:
+                #print("pacman")
+                return pacValue(gameState, agent, depth, alpha, beta)
+            elif agent < gameState.getNumAgents():
+                #print("ghost")
+                return ghostValue(gameState, agent, depth, alpha, beta)
+            else:
+                raise Exception("something don goofed.")
+
+
+        selected = value(gameState)
+        return selected[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
