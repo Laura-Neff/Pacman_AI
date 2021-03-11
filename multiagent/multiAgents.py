@@ -208,44 +208,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
 
     #My code is here
-    # def maxValue(self, gameState):
-    #     #Add terminal condition
-    #     value = float('-inf')
-    #     PacmanActions = gameState.getLegalActions()
-    #
-    #     setOfSuccessors = set()
-    #     for i in PacmanActions:
-    #         setOfSuccessors.add(gameState.generateSuccessor(0, i))
-    #         #Returns the successor game state after an agent takes an action
-    #
-    #     for i in setOfSuccessors:
-    #         value = max(value, minValue(i) #But is Pacman's position the value?????
-    #
-    #     return value
-    #
-    #
-    # def minValue(self, gameState):
-    #     #Add terminal condition
-    #     numAgents = gameState.getNumAgents()
-    #     value = float('inf')
-    #     GhostActions = 0
-    #     for i in numAgents:
-    #         if i is 0:
-    #             continue
-    #         GhostActions += gameState.getLegalActions(i)
-    #
-    #     setOfSuccessors = set()
-    #     for i in GhostActions:
-    #         for j in numAgents:
-    #             setOfSuccessors.add(gameState.generateSucessor(j,i))
-    #
-    #     for i in setOfSuccessors:
-    #         value = max(value, maxValue(i))
-    #
-    #     return value
-
-
-
+    
+    
     def getAction(self, gameState):
         """
           Returns the minimax action from the current gameState using self.depth
@@ -267,7 +231,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         def pacValue(gameState, agent, depth):
             # Add terminal condition
-            v = float('inf')
+            v = []
             #print("minimize other ghosts")
             PacmanActions = gameState.getLegalActions(agent)
             if "Stop" in PacmanActions:
@@ -277,36 +241,32 @@ class MinimaxAgent(MultiAgentSearchAgent):
             for action in PacmanActions:
                 #print("pacman moves "+action)
                 successor = gameState.generateSuccessor(agent, action)
-                newv = value(successor, agent + 1, depth-1)
+                newv, _ = value(successor, agent + 1, depth)
                 #print("pacman got newv:",newv)
-                v = min(v, newv)
+                v.append((newv,action))
                 # Returns the successor game state after an agent takes an action
             #print("pacman says:",v)
-            return v
+            return max(v)
 
         def ghostValue(gameState, agent, depth):
             # Add terminal condition
+            v = []
             if agent+1>=gameState.getNumAgents():
-                #print("maximize pacman")
-                v = float('-inf')
-                minimize=False
+                nextAgent = 0
+                nextDepth = depth - 1
             else:
-                #print("min other ghost")
-                v = float('inf')
-                minimize=True
+                nextAgent = agent + 1
+                nextDepth = depth
             if len(gameState.getLegalActions(agent)) == 0:
                 return self.evaluationFunction(gameState)
             for action in gameState.getLegalActions(agent):
                 #print("ghost "+str(agent)+" moves " +action)
                 successor = gameState.generateSuccessor(agent, action)
-                newv = value(successor, agent+1, depth)
+                newv, _ = value(successor, nextAgent, nextDepth)
                 #print("ghost got newv:",newv)
-                if minimize:
-                    v = min(v, newv)
-                else:
-                    v = max(v, newv)
+                v.append((newv,action))
             #print("ghost says",v)
-            return v
+            return min(v)
 
         def value(gameState, agent=0, depth=self.depth):
             ##TODO: find terminal state
@@ -317,7 +277,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             #print("agent="+str(agent)+", depth="+str(depth))
             if (depth<1 or gameState.isWin() or gameState.isLose()):
                 #print("term state")
-                return self.evaluationFunction(gameState)
+                return (self.evaluationFunction(gameState),None)
             if agent==0:
                 #print("pacman")
                 return pacValue(gameState, agent, depth)
@@ -328,30 +288,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 raise Exception("something don goofed.")
 
 
-        actions_values = []
-        pacman_actions = gameState.getLegalActions()
-        if "Stop" in pacman_actions:
-            pacman_actions.remove("Stop")
-        for action in pacman_actions:
-            successor = gameState.generateSuccessor(0,action)
-            actions_values.append((action,value(successor)))
-        selected = sorted(actions_values,key=lambda x:x[1],reverse=True)[0]
-        print(selected)
-        #time.sleep(0.5)
-        return selected[0]
-
-
-
-
-
-
-
-        #successorGameState = gameState.generatePacmanSuccessor(0, action)
-
-
-
-
-        #util.raiseNotDefined()
+        selected = value(gameState)
+        return selected[1]
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
