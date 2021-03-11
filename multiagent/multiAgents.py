@@ -21,12 +21,11 @@
 "THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING "
 "ANY# SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. LAURA NEFF"
 
-from util import manhattanDistance
 from game import Directions
-import random, util, copy, math
-
 from game import Agent
-import time
+from game import Actions
+from util import manhattanDistance
+import random, util, copy, math, time
 
 class ReflexAgent(Agent):
     """
