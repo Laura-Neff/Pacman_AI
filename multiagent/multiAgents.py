@@ -388,16 +388,97 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+    ##moves = getLegalMoves()
+    ##priors = {m:1./len(moves) for m in moves} ???
+
+    #max nodes are as they were in minimax search
+    #min nodes are chance nodes (store expected utilities) = children * priors
 
     def getAction(self, gameState):
         """
-          Returns the expectimax action using self.depth and self.evaluationFunction
-
-          All ghosts should be modeled as choosing uniformly at random from their
-          legal moves.
+          Returns the expectmax action from the current gameState using self.depth
+          and self.evaluationFunction.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        def pacValue(gameState, agent, depth):
+            # Add terminal condition
+            v = []
+            #print("minimize other ghosts")
+            PacmanActions = gameState.getLegalActions(agent)
+            if "Stop" in PacmanActions:
+                PacmanActions.remove("Stop")
+            if len(PacmanActions) == 0:
+                return self.evaluationFunction(gameState)
+            for action in PacmanActions:
+                #print("pacman moves "+action)
+                successor = gameState.generateSuccessor(agent, action)
+                newv, _ = value(successor, agent + 1, depth)
+                #print("pacman got newv:",newv)
+                v.append((newv,action))
+                # Returns the successor game state after an agent takes an action
+            #print("pacman says:",v)
+            return max(v)
+
+        def ghostValue(gameState, agent, depth):
+            # Add terminal condition
+            v = 0
+            if agent+1>=gameState.getNumAgents():
+                nextAgent = 0
+                nextDepth = depth - 1
+            else:
+                nextAgent = agent + 1
+                nextDepth = depth
+            if len(gameState.getLegalActions(agent)) == 0:
+                return self.evaluationFunction(gameState)
+            ghostActions = gameState.getLegalActions(agent)
+            p = probabilities(gameState, ghostActions)
+            for action in ghostActions:
+                #print("ghost "+str(agent)+" moves " +action)
+                successor = gameState.generateSuccessor(agent, action)
+                newv, _ = value(successor, nextAgent, nextDepth)
+                #print("ghost got newv:",newv)
+                v += p[action]*newv
+            #print("ghost says",v)
+            return (v,None)
+
+        def value(gameState, agent=0, depth=self.depth):
+            ##TODO: find terminal state
+            #time.sleep(0.05)
+            if agent >= gameState.getNumAgents():
+                #print("next level")
+                return value(gameState, 0, depth - 1)
+            #print("agent="+str(agent)+", depth="+str(depth))
+            if (depth<1 or gameState.isWin() or gameState.isLose()):
+                #print("term state")
+                return (self.evaluationFunction(gameState),None)
+            if agent==0:
+                #print("pacman")
+                return pacValue(gameState, agent, depth)
+            elif agent < gameState.getNumAgents():
+                #print("ghost")
+                return ghostValue(gameState, agent, depth)
+            else:
+                raise Exception("something don goofed.")
+        
+        def probabilities(gameState, moves):
+            ## generate conditional probabilities for ghost moves
+            ## Expectation function: Pacman's beliefs of which moves the ghost will take
+            ##
+            ## Equation: Expectation = sum([score * P(Move=move) for move,score in scores_with_different_moves])
+            ##      move: categorical variable coded as ... 
+            ##      score: the score of the game if the ghost makes that move
+            ##      Expectation: the weighted average score given how the ghosts move
+            ## The full expectation equation is coded in the ghostValue() function; ghostValue() returns the average score.
+            ##
+            ## This function WOULD USUALLY generate the P(Move=move) probabilities from prior data and generated data
+            ## HOWEVER, we're just assuming we'll be encountering RandomGhosts with a uniform distribution of probabilities...
+            
+            p  = {m:1./len(moves) for m in moves}
+            return p
+
+        selected = value(gameState)
+        return selected[1]
 
 def betterEvaluationFunction(currentGameState):
     """
