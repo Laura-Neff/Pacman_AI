@@ -111,7 +111,7 @@ class ReflexAgent(Agent):
         scaredGhostNearWeight = 15  #opportunity to get better score
         capsuleAteWeight = 10  #opportunity for better score
         capsuleCloseWeight = 8 + random.random() #opportunity for better score
-        foodAteWeight = 6 #will increase score, but not by much
+        foodAteWeight = 3 #will increase score, but not by much
         foodCloseWeight = 1 + random.random()/2
 
 
@@ -208,8 +208,44 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
 
     #My code is here
-    
-    
+    # def maxValue(self, gameState):
+    #     #Add terminal condition
+    #     value = float('-inf')
+    #     PacmanActions = gameState.getLegalActions()
+    #
+    #     setOfSuccessors = set()
+    #     for i in PacmanActions:
+    #         setOfSuccessors.add(gameState.generateSuccessor(0, i))
+    #         #Returns the successor game state after an agent takes an action
+    #
+    #     for i in setOfSuccessors:
+    #         value = max(value, minValue(i) #But is Pacman's position the value?????
+    #
+    #     return value
+    #
+    #
+    # def minValue(self, gameState):
+    #     #Add terminal condition
+    #     numAgents = gameState.getNumAgents()
+    #     value = float('inf')
+    #     GhostActions = 0
+    #     for i in numAgents:
+    #         if i is 0:
+    #             continue
+    #         GhostActions += gameState.getLegalActions(i)
+    #
+    #     setOfSuccessors = set()
+    #     for i in GhostActions:
+    #         for j in numAgents:
+    #             setOfSuccessors.add(gameState.generateSucessor(j,i))
+    #
+    #     for i in setOfSuccessors:
+    #         value = max(value, maxValue(i))
+    #
+    #     return value
+
+
+
     def getAction(self, gameState):
         """
           Returns the minimax action from the current gameState using self.depth
@@ -297,20 +333,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     def getAction(self, gameState):
         """
-            Returns the minimax action from the current gameState using self.depth
+            Returns the minimax action with A/B pruning from the current gameState using self.depth
             and self.evaluationFunction.
-
-            Here are some method calls that might be useful when implementing minimax.
-
-            gameState.getLegalActions(agentIndex):
-            Returns a list of legal actions for an agent
-            agentIndex=0 means Pacman, ghosts are >= 1
-
-            gameState.generateSuccessor(agentIndex, action):
-            Returns the successor game state after an agent takes an action
-
-            gameState.getNumAgents():
-            Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
 
@@ -361,7 +385,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             #print("ghost says",v)
             return min(v)
 
-        def value(gameState, agent=0, depth=self.depth,alpha=float("-inf"), beta=float("inf")):
+        def value(gameState, agent=0, depth=self.depth,alpha=float("-inf"), beta=float("+inf")):
             ##TODO: find terminal state
             #time.sleep(0.05)
             if agent >= gameState.getNumAgents():
@@ -469,9 +493,10 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             ##      move: categorical variable coded as ... 
             ##      score: the score of the game if the ghost makes that move
             ##      Expectation: the weighted average score given how the ghosts move
-            ## The full expectation equation is coded in the ghostValue() function; ghostValue() returns the average score.
             ##
             ## This function WOULD USUALLY generate the P(Move=move) probabilities from prior data and generated data
+            ## The full expectation equation is coded in the ghostValue() function; ghostValue() returns the average score.
+            ##
             ## HOWEVER, we're just assuming we'll be encountering RandomGhosts with a uniform distribution of probabilities...
             
             p  = {m:1./len(moves) for m in moves}
@@ -488,7 +513,30 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    curScore = currentGameState.getScore() #this is to get already eaten food and time penalty factor
+    problem = FoodSearchProblem(currentGameState) ## convert the current game state to a problem
+    foodUtility = foodHeuristic(problem) #apply the aStarSearch to get utility of eating all food from current position
+    ghostsDist = ghostHeuristic(problem) #apply the aStarSearch to get the distances to all ghosts as sum
+    
+    #TODO: write code to finish these
+    scaredGhostUtility = 0
+    capsuleUtility = 0
+
+    #TODO: recalibrate these once scaredGhostUtility and capsuleUtility functions are added
+    #      (Are we overfitting these to the current game?)
+    foodWeight = 1
+    ghostWeight = 4.2
+    scaredGhostWeight = 1
+    capsuleWeight = 1
+
+    output = curScore + \
+            foodUtility*foodWeight + \
+            ghostsDist*ghostWeight + \
+            scaredGhostUtility*scaredGhostWeight + \
+            capsuleUtility*capsuleWeight  
+    #print(output)
+    return output
+    
 
 # Abbreviation
 better = betterEvaluationFunction
@@ -509,3 +557,175 @@ class ContestAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
 
+############################
+## modified code from searchAgents.py
+############################
+
+class FoodSearchProblem:
+    """
+    A search problem associated with finding the a path that collects all of the
+    food (dots) in a Pacman game.
+
+    A search state in this problem is a tuple ( pacmanPosition, foodGrid ) where
+      pacmanPosition: a tuple (x,y) of integers specifying Pacman's position
+      foodGrid:       a Grid (see game.py) of either True or False, specifying remaining food
+    """
+    def __init__(self, startingGameState):
+        self.start = (startingGameState.getPacmanPosition(), startingGameState.getFood()) ##this is the current state information
+        self.ghosts = startingGameState.getGhostPositions() ##NEW: for ghost heuristic
+        self.walls = startingGameState.getWalls()
+        self.startingGameState = startingGameState
+        self._expanded = 0
+        self.heuristicInfo = {} # A dictionary for the heuristic to store information
+
+    def getStartState(self):
+        return self.start
+
+    def isGoalState(self, state):
+        return state[1].count() == 0
+
+    def getSuccessors(self, state):
+        "Returns successor states, the actions they require, and a cost of 1."
+        successors = []
+        self._expanded += 1
+        for direction in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            x,y = state[0]
+            dx, dy = Actions.directionToVector(direction)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextFood = state[1].copy()
+                nextFood[nextx][nexty] = False
+                successors.append( ( ((nextx, nexty), nextFood), direction, 1) )
+        return successors
+
+    def getCostOfActions(self, actions):
+        """Returns the cost of a particular sequence of actions.  If those actions
+        include an illegal move, return 999999"""
+        x,y= self.getStartState()[0]
+        cost = 0
+        for action in actions:
+            # figure out the next state and see whether it's legal
+            dx, dy = Actions.directionToVector(action)
+            x, y = int(x + dx), int(y + dy)
+            if self.walls[x][y]:
+                return 999999
+            cost += 1
+        return cost
+
+def foodHeuristic(problem):
+    """
+    Your heuristic for the FoodSearchProblem goes here.
+
+    This heuristic must be consistent to ensure correctness.  First, try to come up
+    with an admissible heuristic; almost all admissible heuristics will be consistent
+    as well.
+
+    If using A* ever finds a solution that is worse uniform cost search finds,
+    your heuristic is *not* consistent, and probably not admissible!  On the other hand,
+    inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
+
+    If you want access to info like walls, capsules, etc., you can query the problem.
+    For example, problem.walls gives you a Grid of where the walls are.
+
+    If you want to *store* information to be reused in other calls to the heuristic,
+    there is a dictionary called problem.heuristicInfo that you can use. For example,
+    if you only want to count the walls once and store that value, try:
+      problem.heuristicInfo['wallCount'] = problem.walls.count()
+    Subsequent calls to this heuristic can access problem.heuristicInfo['wallCount']
+    """
+    state = problem.start ##the FSP will have this info
+    foodGrid = state[1].data
+
+    # goals = [x for x in foodGrid if x is True]
+
+    goals = set()
+    for rowIndex, row in enumerate(foodGrid):
+        for columnIndex, column in enumerate(row):
+            if column:
+                goals.add((rowIndex, columnIndex))
+
+    # position = state
+
+    # distances = list()
+    distances = []
+    current_sum = 0
+    min_dist = float("inf")
+    min_point = None
+    if len(goals) == 0: return 0
+    for x, y in goals:
+        d = abs(state[0][0] - x) + abs(state[0][1] - y)
+        if d < min_dist:
+            min_dist = d
+            min_point = (x, y)
+    if min_point is None:
+        raise Exception("No closest point found.")
+
+    #print("closest point to goal: " + str(min_point))
+    current_sum += min_dist
+    distances.append(1./current_sum)
+    remaining = goals
+    remaining.remove(min_point)
+    atpoint = min_point
+    while (remaining):
+        min_dist = float("inf")
+        min_point = None
+        for x, y in remaining:
+            d = abs(atpoint[0] - x) + abs(atpoint[1] - y)
+            if d < min_dist:
+                min_dist = d
+                min_point = (x, y)
+        current_sum += min_dist
+        distances.append(1./current_sum)
+        remaining.remove(min_point)
+        atpoint = min_point
+    
+    #utility function: 10 points for each pellet of food to eat, -5 for each space Pacman has to move
+    return 10*len(distances) - 5*current_sum #add ten points for each pellet eaten, subtract five points time penalty for distance to food
+
+## NEW: based on foodHeuristic
+def ghostHeuristic(problem):
+    """
+    finds closest distances for all ghosts
+    """
+    state = problem.start ##the FSP will have this info
+    ghostPositions = problem.ghosts ##change from foodGrid to ghost positions as goals
+
+    goals = set(ghostPositions)
+
+    # position = state
+
+    # distances = list()
+    #distances = []
+    current_sum = 0
+    min_dist = float("inf")
+    min_point = None
+    if len(goals) == 0: return 0
+    for x, y in goals:
+        d = abs(state[0][0] - x) + abs(state[0][1] - y)
+        if d < min_dist:
+            min_dist = d
+            min_point = (x, y)
+    if min_point is None:
+        raise Exception("No closest point found.")
+
+    #print("closest point to goal: " + str(min_point))
+    current_sum += min_dist
+    #distances.append(1./current_sum)
+    remaining = goals
+    remaining.remove(min_point)
+    atpoint = min_point
+    while (remaining):
+        min_dist = float("inf")
+        min_point = None
+        for x, y in remaining:
+            d = abs(atpoint[0] - x) + abs(atpoint[1] - y)
+            if d < min_dist:
+                min_dist = d
+                min_point = (x, y)
+        current_sum += min_dist
+        #distances.append(1./current_sum)
+        remaining.remove(min_point)
+        atpoint = min_point
+    
+    #return sum of distances to all ghosts (higher is better for fearless ghosts)
+    return current_sum 
