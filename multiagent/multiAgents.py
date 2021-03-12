@@ -245,23 +245,23 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Peter Novig):
         
         def min-value(state):
-        initialize v = infinity
-        for each successor of state:
-            v = min(v, value(successor))
-        return v
+            initialize v = infinity
+            for each successor of state:
+                v = min(v, value(successor))
+            return v
         
         def max-value(state):
-        initialize v = -infinity
-        for each successor of state:
-            v = max(v, value(successor))
-        return v
+            initialize v = -infinity
+            for each successor of state:
+                v = max(v, value(successor))
+            return v
         
         
         ##This next function determines whether max-value or min-value should run
         def value(state):
-        if state is a terminal state: return the state's utility
-        if the next agent is MAX: return max-value(state)
-        if the next agent is MIN: return min-value(state)
+            if state is a terminal state: return the state's utility
+            if the next agent is MAX: return max-value(state)
+            if the next agent is MIN: return min-value(state)
 
 
     """
@@ -354,6 +354,58 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
         Your minimax agent with alpha-beta pruning (question 3)
     """
+
+    """
+    This is just Minimax, but min-value and max-value are modified with alpha and beta (just temporary values we use).
+    
+    What we achieve with Alpha Beta pruning is that we don't check certain nodes in the tree if we know we won't need
+    to look at them. This makes much more sense when one looks at a diagram holistically. Say the deepest layer is the
+    min layer. For the max layer that is the second deepest, there is a node that takes two nodes from the deepest layer.
+    Say this max node value is 2. Now say there is another node on this max layer. Say one has only checked one child
+    of this max layer node and not the other. Say that one child of this max layer node is 4. One does not need to check
+    the other child of this max layer node because one realizes this is a node on the MAX layer -- the result of this 
+    max layer node will only change if the other node is bigger than the child 4. This max layer is sandwiched with 
+    another min layer above it, so therefore, the aforementioned would be useless information for the min layer node
+    parent of the two max layer node children to know, since one child of the min layer is already less than the other. 
+    The min layer node has two options for its value: 2 or a value that is 4 or greater. Therefore, one can prune or
+    remove the path to the node that contains the other child of the bigger max layer node.
+    
+    MAX-LAYER: chooses the max child for its current node value of the two choices the min-layer provides 
+               (given it's a binary search tree)
+    
+    MIN-LAYER: chooses the min child for its current node value of the two choices the max-layer provides 
+               (given it's a binary search tree)
+    
+    Psuedocode from book (Artificial Intelligence: A Modern Approach by Stuart Russell and Peter Novig):
+    
+    alpha: MAX's best option on path to root
+    beta: MIN's best option on path to root
+    
+    def max-value(state, alpha, beta):
+        initialize v = -infinity
+        for each successor of state:
+            v = max(v, value(successor, alpha, beta))
+            if v >= beta return v
+            alpha = max(alpha, v)
+        return v
+    
+    def min-value(state , alpha, beta):
+        initialize v = infinity
+        for each successor of state:
+            v = min(v, value(successor, alpha, beta))
+            if v <= alpha return v
+            beta = min(beta, v)
+        return v
+    
+    
+    
+    """
+
+
+
+
+
+
     def getAction(self, gameState):
         """
             Returns the minimax action with A/B pruning from the current gameState using self.depth
@@ -435,6 +487,38 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+
+    """
+    This is just a simply coded Expectimax function. It is for the most part like Minimax, where the max-value function
+    that represents Pacman is the same as the max-value function in Minimax. However, the function for the ghost is less
+    of a min-value function and more of a function that represents the probability of each ghost doing a certain action.
+    That's what Expectimax is-- instead of being a pessimistic function like Minimax, it is a function that uses 
+    statistics to see the reality of what the ghosts actually do so Pacman can have a better guage of what he should do
+    to maximize his score.
+    
+    In this assignment, since the distribution of the actions is uniform for each ghost (there is uniform distribution),
+    each ghost is just as likely to do one action as they are another. Therefore, the probabilities for each ghost is 
+    equal. Since this assignment requires state-action pairs, the probabilities are stored in a dictionary. Nevertheless,
+    the only thing that is being returned by the ghostValue function is the Expected Value formula from statistics, which
+    is: 
+    
+    Expected_Value = x1p1 * x2p2 + .... + xipi,
+    
+    where x1, x2, ..., xi represents each different MOVE the ghost can make and p1, p2, ..., pi represents their 
+    respective probabilities.
+     
+    It is tempting to say that x should be the ghost, but this function tests the probabilities of actions.
+    
+    
+    
+    """
+
+
+
+
+
+
+
     ##moves = getLegalMoves()
     ##priors = {m:1./len(moves) for m in moves} ???
 
