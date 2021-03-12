@@ -125,9 +125,6 @@ class ReflexAgent(Agent):
         ateFood = sum([item for sublist in currentFood.data for item in sublist]) - sum([item for sublist in newFood.data for item in sublist])
         ateCapsule = len(currentCapsules) - len(newCapsules)
 
-
-        "*** YOUR CODE HERE ***"
-
         #Evaluation function = w1*f(x) + w2*f(x) + ... wi*f(x)
 
 
@@ -286,7 +283,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
 
         def pacValue(gameState, agent, depth):
             # Add terminal condition
@@ -411,7 +407,6 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             Returns the minimax action with A/B pruning from the current gameState using self.depth
             and self.evaluationFunction.
         """
-        "*** YOUR CODE HERE ***"
 
         def pacValue(gameState, agent, depth, alpha, beta):
             # Add terminal condition
@@ -530,7 +525,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           Returns the expectmax action from the current gameState using self.depth
           and self.evaluationFunction.
         """
-        "*** YOUR CODE HERE ***"
 
         def pacValue(gameState, agent, depth):
             # Add terminal condition
