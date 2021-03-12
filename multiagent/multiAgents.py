@@ -206,44 +206,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
       Your minimax agent (question 2)
     """
 
-    #My code is here
-    # def maxValue(self, gameState):
-    #     #Add terminal condition
-    #     value = float('-inf')
-    #     PacmanActions = gameState.getLegalActions()
-    #
-    #     setOfSuccessors = set()
-    #     for i in PacmanActions:
-    #         setOfSuccessors.add(gameState.generateSuccessor(0, i))
-    #         #Returns the successor game state after an agent takes an action
-    #
-    #     for i in setOfSuccessors:
-    #         value = max(value, minValue(i) #But is Pacman's position the value?????
-    #
-    #     return value
-    #
-    #
-    # def minValue(self, gameState):
-    #     #Add terminal condition
-    #     numAgents = gameState.getNumAgents()
-    #     value = float('inf')
-    #     GhostActions = 0
-    #     for i in numAgents:
-    #         if i is 0:
-    #             continue
-    #         GhostActions += gameState.getLegalActions(i)
-    #
-    #     setOfSuccessors = set()
-    #     for i in GhostActions:
-    #         for j in numAgents:
-    #             setOfSuccessors.add(gameState.generateSucessor(j,i))
-    #
-    #     for i in setOfSuccessors:
-    #         value = max(value, maxValue(i))
-    #
-    #     return value
-
-
 
     def getAction(self, gameState):
         """
@@ -513,13 +475,13 @@ def betterEvaluationFunction(currentGameState):
     """
     "*** YOUR CODE HERE ***"
     curScore = currentGameState.getScore() #this is to get already eaten food and time penalty factor
-    problem = FoodSearchProblem(currentGameState) ## convert the current game state to a problem
+    problem = FoodSearchProblem(currentGameState) ## convert the current game state to a simpler version of the state space
     foodUtility = foodHeuristic(problem) #apply the aStarSearch to get utility of eating all food from current position
     ghostsDist = ghostHeuristic(problem) #apply the aStarSearch to get the distances to all ghosts as sum
     
     #TODO: write code to finish these
-    scaredGhostUtility = 0
-    capsuleUtility = 0
+    scaredGhostUtility = scaredGhostHeuristic(problem)
+    capsuleUtility = capsuleHeuristic(problem)
 
     #TODO: recalibrate these once scaredGhostUtility and capsuleUtility functions are added
     #      (Are we overfitting these to the current game?)
@@ -572,6 +534,8 @@ class FoodSearchProblem:
     def __init__(self, startingGameState):
         self.start = (startingGameState.getPacmanPosition(), startingGameState.getFood()) ##this is the current state information
         self.ghosts = startingGameState.getGhostPositions() ##NEW: for ghost heuristic
+        self.capsules = startingGameState.getCapsules()
+        self.ghost_states = startingGameState.getGhostStates()
         self.walls = startingGameState.getWalls()
         self.startingGameState = startingGameState
         self._expanded = 0
@@ -687,9 +651,13 @@ def ghostHeuristic(problem):
     finds closest distances for all ghosts
     """
     state = problem.start ##the FSP will have this info
-    ghostPositions = problem.ghosts ##change from foodGrid to ghost positions as goals
 
-    goals = set(ghostPositions)
+    currentGhostStates = problem.ghost_states
+    scaredTimes = [ghostState.scaredTimer for ghostState in currentGhostStates]
+
+    goals = [ghost.getPosition() for ghost in currentGhostStates if ghost.scaredTimer <= 1]
+    goals = set(goals)
+
 
     # position = state
 
@@ -699,6 +667,7 @@ def ghostHeuristic(problem):
     min_dist = float("inf")
     min_point = None
     if len(goals) == 0: return 0
+
     for x, y in goals:
         d = abs(state[0][0] - x) + abs(state[0][1] - y)
         if d < min_dist:
@@ -727,4 +696,105 @@ def ghostHeuristic(problem):
         atpoint = min_point
     
     #return sum of distances to all ghosts (higher is better for fearless ghosts)
-    return current_sum 
+    return current_sum
+
+
+def scaredGhostHeuristic(problem):
+    """
+    finds closest distances for all ghosts
+    """
+    state = problem.start  ##the FSP will have this info
+    #ghostPositions = problem.ghosts  ##change from foodGrid to ghost positions as goals
+
+    #goals = set(ghostPositions)
+
+    # position = state
+
+    # distances = list()
+    # distances = []
+    current_sum = 0
+    min_dist = float("inf")
+    min_point = None
+
+    currentGhostStates = problem.ghost_states
+    scaredTimes = [ghostState.scaredTimer for ghostState in currentGhostStates]
+
+    goals = [ghost.getPosition() for ghost in currentGhostStates if ghost.scaredTimer > 1]
+    goals = set(goals)
+
+    if len(goals) == 0: return 0
+
+
+    for x, y in goals:
+        d = abs(state[0][0] - x) + abs(state[0][1] - y)
+        if d < min_dist:
+            min_dist = d
+            min_point = (x, y)
+    if min_point is None:
+        raise Exception("No closest point found.")
+
+
+    # print("closest point to goal: " + str(min_point))
+    current_sum += min_dist
+    # distances.append(1./current_sum)
+    remaining = goals
+    remaining.remove(min_point)
+    atpoint = min_point
+    while (remaining):
+        min_dist = float("inf")
+        min_point = None
+        for x, y in remaining:
+            d = abs(atpoint[0] - x) + abs(atpoint[1] - y)
+            if d < min_dist:
+                min_dist = d
+                min_point = (x, y)
+        current_sum += min_dist
+        # distances.append(1./current_sum)
+        remaining.remove(min_point)
+        atpoint = min_point
+
+    # return sum of distances to all ghosts (higher is better for fearless ghosts)
+    return 100*len(goals) - 5*current_sum #Return 100 * the number of scared ghosts - 5 * the steps wasted not gaining points
+
+
+def capsuleHeuristic(problem):
+
+    state = problem.start  ##the FSP will have this info
+    goals = set(problem.capsules)
+    # position = state
+
+    # distances = list()
+    distances = []
+    current_sum = 0
+    min_dist = float("inf")
+    min_point = None
+    if len(goals) == 0: return 0
+    for x, y in goals:
+        d = abs(state[0][0] - x) + abs(state[0][1] - y)
+        if d < min_dist:
+            min_dist = d
+            min_point = (x, y)
+    if min_point is None:
+        raise Exception("No closest point found.")
+
+    # print("closest point to goal: " + str(min_point))
+    current_sum += min_dist
+    distances.append(1. / current_sum)
+    remaining = goals
+    remaining.remove(min_point)
+    atpoint = min_point
+    while (remaining):
+        min_dist = float("inf")
+        min_point = None
+        for x, y in remaining:
+            d = abs(atpoint[0] - x) + abs(atpoint[1] - y)
+            if d < min_dist:
+                min_dist = d
+                min_point = (x, y)
+        current_sum += min_dist
+        distances.append(1. / current_sum)
+        remaining.remove(min_point)
+        atpoint = min_point
+
+    # utility function: 10 points for each pellet of food to eat, -5 for each space Pacman has to move
+    return 10 * len(distances) - 20 * current_sum  # add ten points for each pellet eaten, subtract five points time penalty for distance to food
