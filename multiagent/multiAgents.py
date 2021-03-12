@@ -619,18 +619,31 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
+
+    """
+    This uses A*-search for each factor (food, scared ghosts, normal ghosts, capsules) and calculates heuristics
+    so that Pacman is encouraged to pursue one opportunity over the other. Individual heuristic weights are assigned
+    in these A*-search functions (which we will call the utility function) -- then one subtracts the time wasted to
+    get to the resource (since in this Pacman game, the score goes down as the clock ticks). Lastly, extra weights are
+    applied for these factors in combination with their heuristic weights for an extra boost. 
+    
+    It should be noted that this particular betterEvaluationFunction uses a strategy similar to the stock market--
+    Pacman will take big risks at times for a chance at a huge reward. He even taunts the ghosts. It pays off,
+    as in accordance to my data from the results of the function. 
+    
+    
+    """
+
+
+
     curScore = currentGameState.getScore() #this is to get already eaten food and time penalty factor
     problem = FoodSearchProblem(currentGameState) ## convert the current game state to a simpler version of the state space
     foodUtility = foodHeuristic(problem) #apply the aStarSearch to get utility of eating all food from current position
     ghostsDist = ghostHeuristic(problem) #apply the aStarSearch to get the distances to all ghosts as sum
-    
-    #TODO: write code to finish these
+
     scaredGhostUtility = scaredGhostHeuristic(problem)
     capsuleUtility = capsuleHeuristic(problem)
 
-    #TODO: recalibrate these once scaredGhostUtility and capsuleUtility functions are added
-    #      (Are we overfitting these to the current game?)
     foodWeight = 1
     ghostWeight = 4.2
     scaredGhostWeight = 1
