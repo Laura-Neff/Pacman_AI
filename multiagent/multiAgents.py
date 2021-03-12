@@ -83,6 +83,33 @@ class ReflexAgent(Agent):
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
+
+
+        """
+        This reflex agent assigns the highest weight (and most amount of points) to scared ghosts because 
+        they give Pacman the most amount of points in a standard Pacman game, then capsules because Pacman will 
+        have the opportunity to get more points later when the scared ghosts come, then food. A distinction is made 
+        between when food, capsules, and ghosts are near Pacman vs. when they are eaten. Furthermore, Pacman is scared
+        of a ghost in its normal state, so normal ghosts are assigned negative weights and negative points.
+        
+        Like a game of chess, the evaluation function for the reflex agent is calculated using this standard formula:
+        
+        
+        EVAL(s) = w1f1(s) + w2f2(s) + .... + wnfn(s) 
+        
+        
+        Where w1, w2, ..., wn are the weights of the different positive/negative factors and where f1, f2, ..., fn 
+        represent the score.
+        
+        
+        This standard formula is taken from the textbook 
+        (Artificial Intelligence: A Modern Approach by Stuart Russell and Peter Novig)
+        
+        
+        """
+
+
+
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
@@ -205,6 +232,41 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
       Your minimax agent (question 2)
     """
+
+    """
+        This Minimax function is pretty straightforward. It is pretty much the algorithm described in the textbook, 
+        where there is a min-value function for the opponent (each ghost), and a max-value function for the protagonist 
+        (Pacman). Pacman assumes that every action the ghosts will do will minimize his score, so Pacman chooses the 
+        path that maximizes his score given the ghosts' choices in trying to minimize his score. One needs to take into
+        account that EACH ghost is performing the min-value function independently (not as a group) so that they can
+        divide and conquer and corner Pacman into a situation he cannot escape. 
+        
+        Here's the psuedocode taken from the textbook (Artificial Intelligence: A Modern Approach by Stuart Russell and
+        Peter Novig):
+        
+        def min-value(state):
+        initialize v = infinity
+        for each successor of state:
+            v = min(v, value(successor))
+        return v
+        
+        def max-value(state):
+        initialize v = -infinity
+        for each successor of state:
+            v = max(v, value(successor))
+        return v
+        
+        
+        ##This next function determines whether max-value or min-value should run
+        def value(state):
+        if state is a terminal state: return the state's utility
+        if the next agent is MAX: return max-value(state)
+        if the next agent is MIN: return min-value(state)
+
+
+    """
+
+
 
 
     def getAction(self, gameState):
