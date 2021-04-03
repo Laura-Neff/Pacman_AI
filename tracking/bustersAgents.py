@@ -13,6 +13,11 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+"LAURA NEFF"
+"laura.neff@emory.edu/lneff2/2304477"
+"THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING "
+"ANY# SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. LAURA NEFF"
+
 import util
 from game import Agent
 from game import Directions
