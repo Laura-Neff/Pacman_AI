@@ -162,9 +162,37 @@ class GreedyBustersAgent(BustersAgent):
                                             in enumerate(self.ghostBeliefs)
                                             if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
-        #To find the maze distance between any two positions, use:
-        #self.distancer.getDistance(pos1, pos2)
+        #util.raiseNotDefined()
 
-        # To find the successor position of a position after an action:
-        # successorPosition = Actions.getSuccessor(position, action)
+
+        ghostPosition = list()
+        for belief in livingGhostPositionDistributions:
+            firstSpaceVal = 0
+            mostLikelyPosition = None
+            for k, v in belief.items():
+                if v > firstSpaceVal:
+                    mostLikelyPosition = k
+                    firstSpaceVal = v
+            ghostPosition.append(mostLikelyPosition)
+
+        minimum = 999999
+        closestGhost = None
+        for position in ghostPosition:
+            ghostDistance = self.distancer.getDistance(position, pacmanPosition)
+            if ghostDistance < minimum:
+                minimum = ghostDistance
+                closestGhost = position
+
+        bestDistance = 999999
+        bestAction = None
+        pacmanDistance = self.distancer.getDistance(closestGhost, pacmanPosition)
+        for action in legal:
+            successorPosition = Actions.getSuccessor(pacmanPosition, action)
+            successorDistance = self.distancer.getDistance(closestGhost, successorPosition)
+            if successorDistance < bestDistance:
+                bestAction = action
+                bestDistance = successorDistance
+        return bestAction
+
+
+
