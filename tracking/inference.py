@@ -123,6 +123,7 @@ class ExactInference(InferenceModule):
         self.beliefs = util.Counter()
         for p in self.legalPositions: self.beliefs[p] = 1.0
         self.beliefs.normalize()
+        self.movecount = 0
 
     def observe(self, observation, gameState):
         """
@@ -146,20 +147,48 @@ class ExactInference(InferenceModule):
              captured).
 
         """
+        self.movecount += 1
         noisyDistance = observation
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # print("Noisy Distance: ", noisyDistance)
+        # print("Emission Model: ", emissionModel)
+        # print("Pacman Position: ", pacmanPosition)
+        # print("Belief Matrix: ", self.beliefs)
+        # print("JAIL TIME: ", self.getJailPosition())
+
+
+        # for key,value in self.beliefs.items():
+        #     distance = util.manhattanDistance(pacmanPosition, key)
+        #     self.beliefs[key] = emissionModel[distance] * self.beliefs[key]
+
+        #util.raiseNotDefined()
 
         # Replace this code with a correct observation update
         # Be sure to handle the "jail" edge case where the ghost is eaten
         # and noisyDistance is None
+        # allPossible = util.Counter()
+        # for p in self.legalPositions:
+        #     trueDistance = util.manhattanDistance(p, pacmanPosition)
+        #     if emissionModel[trueDistance] > 0: allPossible[p] = 1.0
+
         allPossible = util.Counter()
         for p in self.legalPositions:
             trueDistance = util.manhattanDistance(p, pacmanPosition)
-            if emissionModel[trueDistance] > 0: allPossible[p] = 1.0
+            if emissionModel[trueDistance] > 0:
+                allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
+            #util.Counter() = dictionary data type for this program
+            #allpossible = B(xi+1) = belief function probability distribution matrix
+        if noisyDistance==None: #If Pacman eats ghost
+            for k in allPossible.keys(): #For all keys in allPossible positions Pacman can access where the ghost can be
+                allPossible[k] = 0 #Set all the possibilities for where the ghost can be to 0
+            allPossible[self.getJailPosition()] = 1 #Because Pacman is 100% sure that the ghost is in jail!!!
+
+
+            # else:
+            #     allPossible[p] = self.beliefs[p] ##?? or is this 0? find out i guess...
 
         "*** END YOUR CODE HERE ***"
 
