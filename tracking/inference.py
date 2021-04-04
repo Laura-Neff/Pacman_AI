@@ -23,6 +23,7 @@ import util
 import random
 import busters
 import game
+from collections import defaultdict
 
 class InferenceModule:
     """
@@ -245,7 +246,20 @@ class ExactInference(InferenceModule):
         """
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+
+        allPossible = util.Counter()
+        for oldPos,oldProb in self.beliefs.items():
+            if oldProb <= 0: continue
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+            for newPos,newProb in newPosDist.items():
+                newPosDist[newPos] *= oldProb
+            allPossible += newPosDist
+        self.beliefs = allPossible
+
+
+
+        #util.raiseNotDefined()
 
     def getBeliefDistribution(self):
         return self.beliefs

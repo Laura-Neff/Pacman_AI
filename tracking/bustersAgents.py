@@ -163,3 +163,8 @@ class GreedyBustersAgent(BustersAgent):
                                             if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
         util.raiseNotDefined()
+        #To find the maze distance between any two positions, use:
+        #self.distancer.getDistance(pos1, pos2)
+
+        # To find the successor position of a position after an action:
+        # successorPosition = Actions.getSuccessor(position, action)
