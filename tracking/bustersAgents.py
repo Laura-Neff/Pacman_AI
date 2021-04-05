@@ -161,37 +161,37 @@ class GreedyBustersAgent(BustersAgent):
         livingGhostPositionDistributions = [beliefs for i,beliefs
                                             in enumerate(self.ghostBeliefs)
                                             if livingGhosts[i+1]]
-        "*** YOUR CODE HERE ***"
-        #util.raiseNotDefined()
 
 
-        ghostPosition = list()
-        for belief in livingGhostPositionDistributions:
-            firstSpaceVal = 0
-            mostLikelyPosition = None
-            for k, v in belief.items():
-                if v > firstSpaceVal:
-                    mostLikelyPosition = k
-                    firstSpaceVal = v
-            ghostPosition.append(mostLikelyPosition)
 
-        minimum = 999999
-        closestGhost = None
-        for position in ghostPosition:
-            ghostDistance = self.distancer.getDistance(position, pacmanPosition)
-            if ghostDistance < minimum:
-                minimum = ghostDistance
-                closestGhost = position
 
-        bestDistance = 999999
-        bestAction = None
-        pacmanDistance = self.distancer.getDistance(closestGhost, pacmanPosition)
-        for action in legal:
-            successorPosition = Actions.getSuccessor(pacmanPosition, action)
-            successorDistance = self.distancer.getDistance(closestGhost, successorPosition)
-            if successorDistance < bestDistance:
-                bestAction = action
-                bestDistance = successorDistance
+        ghostPosition = list() #Make a list for the ghost positions
+        for belief in livingGhostPositionDistributions: #For each living ghost's belief distribution
+            firstSpaceVal = 0 #Set the probability of a space in the belief distribution to 0 for when we calculate a minimum later
+            mostLikelyPosition = None #Set the most likely position for the ghost to be to null for when we calculate a minimum later
+            for k, v in belief.items(): #For each key, value pair in each ghost's belief distribution
+                if v > firstSpaceVal: #If the probability of the ghost being in one space in the ghost's belief distribution is greater than the one we saw before
+                    mostLikelyPosition = k #Then now, we know where the ghost is more likely to be coordinate-wise; take the position associated with probability
+                    firstSpaceVal = v #Store the more likely probability of where the ghost would be
+            ghostPosition.append(mostLikelyPosition) #Store the most-likely position of where EACH ghost would be in the ghostPositions list
+
+        minimum = 999999 #Initialize minimum to a big number for comparisons later for when we calculate the real minimum
+        closestGhost = None #Set the closest ghost to null because we don't know what's the closest ghost yet
+        for position in ghostPosition: #For each most-likely position of each ghost we have
+            ghostDistance = self.distancer.getDistance(position, pacmanPosition) #Calculate the maze distance between a ghost (where it will likely be) and Pacman
+            if ghostDistance < minimum: #If the distance is less than the shortest distance already calculated between Pacman and another ghost
+                minimum = ghostDistance #Set the minimum to the new shortest distance
+                closestGhost = position #Store the position associated with the ghost that is closest to Pacman
+
+        bestDistance = 999999 #Initialize the best distance to a big number for comparisons later when we calculate a minimum
+        bestAction = None #Set the best action Pacman can take to null
+        pacmanDistance = self.distancer.getDistance(closestGhost, pacmanPosition) #Calculate the maze distance between Pacman and the closest ghost to him
+        for action in legal: #for each legal action
+            successorPosition = Actions.getSuccessor(pacmanPosition, action) #Find a successor position of Pacman
+            successorDistance = self.distancer.getDistance(closestGhost, successorPosition) #Calculate the distance between that successor position and the closest ghost
+            if successorDistance < bestDistance: #If the successor action brought Pacman closer to the ghost than he was before
+                bestAction = action #Then we know that's the best action Pacman can take to hunt the ghost
+                bestDistance = successorDistance #Then we know that action will help us find the shortest path to the ghost
         return bestAction
 
 
