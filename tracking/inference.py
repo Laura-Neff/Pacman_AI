@@ -403,7 +403,20 @@ class ParticleFilter(InferenceModule):
         belief distribution
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+        #util.sample(Counter object)
+
+        newParticles = list()
+        for i in self.particles: #Move each particle as if each particle is a ghost
+            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, i)) #get possible moves of ghost
+            p = util.sample(newPosDist) #Pick a move which will be the new particle
+            newParticles.append(p) #Add it to the new list
+
+        self.particles = newParticles
+        return newParticles
+
+
+        #util.raiseNotDefined()
 
     def getBeliefDistribution(self):
         """
