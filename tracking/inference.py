@@ -296,6 +296,31 @@ class ParticleFilter(InferenceModule):
             and will produce errors
         """
         "*** YOUR CODE HERE ***"
+        particles = list()
+        numparticles = self.numParticles
+        legalPositions = self.legalPositions
+
+        # numLegalPositions = len(legalPositions)
+        #
+        # numParticlePerLegal = int(numparticles/numLegalPositions)
+
+        while(numparticles > 0):
+            for position in legalPositions:
+                particles.append(position)
+                numparticles -= 1
+                if(numparticles <= 0):
+                    break
+
+        self.particles = particles
+        return particles
+
+
+
+
+
+
+
+
 
     def observe(self, observation, gameState):
         """
@@ -330,7 +355,37 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        beliefDistribution = self.getBeliefDistribution() #particle probability distribution
+
+        allPossible = util.Counter()
+
+        for p in beliefDistribution.keys():
+            trueDistance = util.manhattanDistance(p, pacmanPosition)
+            if emissionModel[trueDistance] > 0:
+                allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
+            #util.Counter() = dictionary data type for this program
+            #allpossible = B(xi+1) = belief function probability distribution matrix
+        if sum(allPossible.values()) == 0:
+            self.initializeUniformly(gameState)
+            allPossible = self.getBeliefDistribution()  # particle probability distribution
+
+        if noisyDistance==None: #If Pacman eats ghost
+            for k in allPossible.keys(): #For all keys in allPossible positions Pacman can access where the ghost can be
+                allPossible[k] = 0 #Set all the possibilities for where the ghost can be to 0
+            allPossible[self.getJailPosition()] = 1 #Because Pacman is 100% sure that the ghost is in jail!!!
+
+        allPossible.normalize()
+        newParticles = list()
+        for i in range(self.numParticles):
+            newParticles.append(util.sample(allPossible))
+        self.particles = newParticles
+
+
+
+
+
+
+        #util.raiseNotDefined()
 
     def elapseTime(self, gameState):
         """
@@ -357,7 +412,25 @@ class ParticleFilter(InferenceModule):
           essentially converts a list of particles into a belief distribution (a Counter object)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        particleCounter = util.Counter()
+
+        particles = self.particles
+
+        for i in particles: #For each tuple in particles
+            particleCounter[i] += 1./self.numParticles #For a position in particleCounter dict, put the proportion of
+                                                      #particles in space over particles on board there
+                                                      #So that we have a probability distribution out of 1
+
+        return particleCounter
+
+
+
+
+
+
+
+        #util.raiseNotDefined()
 
 class MarginalInference(InferenceModule):
     "A wrapper around the JointInference module that returns marginal beliefs about ghosts."
