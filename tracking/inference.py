@@ -424,12 +424,6 @@ class ParticleFilter(InferenceModule):
 
 
 
-
-
-
-
-
-
 class MarginalInference(InferenceModule):
     "A wrapper around the JointInference module that returns marginal beliefs about ghosts."
 
@@ -468,6 +462,7 @@ class JointParticleFilter:
         self.numGhosts = gameState.getNumAgents() - 1
         self.ghostAgents = []
         self.legalPositions = legalPositions
+        self.ghostsInJail = [False] * (self.numGhosts) #NEW:: keep track of which ghosts are in jail
         self.initializeParticles()
 
     def initializeParticles(self):
@@ -493,13 +488,28 @@ class JointParticleFilter:
 
         """
         "*** YOUR CODE HERE ***"
+        
+        n = self.numParticles
+        lp = self.legalPositions
+        ng = self.numGhosts
+        combos = [lp if self.ghostsInJail[g] is False else [self.getJailPosition(g)] for g in range(ng)] #use legalpositions for alive ghosts, jail positions for eaten ghosts
+        #combos = [lp for g in range(ng)] #use legalpositions for all ghosts
+        allpossible = list(itertools.product(*combos)) #get all possible particle tuples for all ghosts, making sure to keep eaten ghosts in jail
+        particles = [] #store the initialized particles
+        while n > len(allpossible): #if we want an ungodly number of particles (> all possible ghost positions), 
+                                 # we will just add everything to the particles list and reduce n by len(allpossible)
+            particles.extend(allpossible)
+            n -= len(allpossible)
+        particles.extend(random.sample(allpossible,n)) #sample n random particles from allpossible
+        self.particles = particles #set self.particles
+        return particles
 
     def addGhostAgent(self, agent):
         "Each ghost agent is registered separately and stored (in case they are different)."
         self.ghostAgents.append(agent)
 
     def getJailPosition(self, i):
-        return (2 * i + 1, 1);
+        return (2 * i + 1, 1)
 
     def observeState(self, gameState):
         """
@@ -535,15 +545,63 @@ class JointParticleFilter:
         """
         pacmanPosition = gameState.getPacmanPosition()
         noisyDistances = gameState.getNoisyGhostDistances()
-        if len(noisyDistances) < self.numGhosts: return
+        if len(noisyDistances) < self.numGhosts: return #huh?
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
         "*** YOUR CODE HERE ***"
+        for g in range(self.numGhosts): #for each ghost
+            if noisyDistances[g] == None: #check if ghost is in jail
+                if self.ghostsInJail[g] == False: #if ghost wasn't in jail last turn
+                    self.ghostsInJail[g] = True #put ghost in jail
+                    #print("put ghost "+str(g)+" in jail")
+                    #print("marginal distrs before move:", self.getMarginalBeliefDistribution())
+                for ix, particle in enumerate(self.particles): #update particles to reflect ghost in jail (on every turn to be safe)
+                    self.particles[ix] = self.getParticleWithGhostInJail(particle,g)
+                #print(g)
+                #print(self.particles)
+                #print("marginal distrs after move:", self.getMarginalBeliefDistribution())
+
+        beliefDistribution = self.getBeliefDistribution() #get the belief distribution from the particles
+
+        allPossible = util.Counter() #store the new belief distribution
+
+        for p in beliefDistribution.keys(): #for each position in the particle prob distr
+            weight = 1 #weighting of the particle
+            for g in range(self.numGhosts): #loop over each ghost to get the joint weight of the particle
+                if self.ghostsInJail[g]: #don't worry about ghosts in jail for the weighting
+                                         #emissionsDist will be 0 for ghost in jail so we need to skip the multiplication
+                    continue
+                pos = p[g] #ghost position
+                trueDist = util.manhattanDistance(pos,pacmanPosition) #get manhattan distance as true distance
+                weight *= emissionModels[g][trueDist] #get p(evidence | ghost positions) and multiply by belief matrix
+            allPossible[p] = weight * beliefDistribution[p]
+        if sum(allPossible.values()) == 0: #if all weights are 0, we must resample from prior
+            self.initializeParticles()
+            #print("re-normalized!")
+            allPossible = self.getBeliefDistribution()
+        allPossible.normalize() #normalize weights
+        newParticles = []
+        for i in range(self.numParticles): #sample new particles from new belief distribution
+            newParticles.append(util.sample(allPossible))
+        self.particles = newParticles
+        #print("marginal distrs:", self.getMarginalBeliefDistribution())
+        
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         particle = list(particle)
         particle[ghostIndex] = self.getJailPosition(ghostIndex)
         return tuple(particle)
+    
+    # def getMarginalBeliefDistribution(self): ##copied from the MarginalInference class, with a tweak, for debugging
+    #     "Returns the marginal belief over each ghost by summing out the others."
+    #     jointDistribution = jointInference.getBeliefDistribution()
+    #     dists = dict()
+    #     for ghost in range(self.numGhosts):
+    #         dist = util.Counter()
+    #         for t, prob in jointDistribution.items():
+    #             dist[t[ghost]] += prob
+    #         dists[ghost] = dist
+    #     return dists
 
     def elapseTime(self, gameState):
         """
@@ -590,16 +648,26 @@ class JointParticleFilter:
             newParticle = list(oldParticle) # A list of ghost positions
 
             # now loop through and update each entry in newParticle...
-
             "*** YOUR CODE HERE ***"
+            prevGhostPositions = oldParticle #keep the old positions for setting the previous game state
+            for g in range(self.numGhosts): #move each ghost one by one
+                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, prevGhostPositions),
+                                                       g, self.ghostAgents[g]) #get pos dist for ghost g
+                newPos = util.sample(newPosDist) #sample from this distribution
+                newParticle[g] = newPos #move each ghost given the old positions of the others
 
             "*** END YOUR CODE HERE ***"
-            newParticles.append(tuple(newParticle))
+            newParticles.append(tuple(newParticle)) 
         self.particles = newParticles
 
     def getBeliefDistribution(self):
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        particleCounter = util.Counter() #new belief distribution
+        particles = self.particles 
+        for i in particles: #each i will be a tuple of ghost positions this time
+            particleCounter[i] += 1./self.numParticles #add proportion value for one particle to the position i in the belief distr
+
+        return particleCounter #return belief distribution
         
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
