@@ -18,7 +18,8 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
-import mdp, util
+import mdp, util, copy
+from itertools import chain
 
 from learningAgents import ValueEstimationAgent
 
@@ -51,13 +52,50 @@ class ValueIterationAgent(ValueEstimationAgent):
 
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
+        states = mdp.getStates()
+        Val = self.values
+        # oldVal = 0
+
+        for i in range(1, self.iterations):
+            for x in states:
+                action = mdp.getPossibleActions(x) #Get actions you can from current state
+                transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(x, action) #Gives tuples of (newState, probability of ending in state)
+                outcome = list(chain.from_iterable(transitionStatesAndProbs)) #new state
+                probabilities = transitionStatesAndProbs[outcome] #probability of ending in state
+                Val[x] = probabilities * (mdp.getReward(x, action, outcome) + (self.discount * Val[outcome]))
+                #sum over outcomes
+                #take max of actions... but how?
+
+
+                # oldVal = Val[x]
+
+        # for x in states:
+        #     action = mdp.getPossibleActions(x)
+        #     transitionState = mdp.getTransitionStatesAndProbs(x, action)
+        #     print(transitionState)
+
+
+        # print(self.values)
+        # for x in states:
+            #Val.append(0)
+            # print(x)
+
 
 
     def getValue(self, state):
         """
           Return the value of the state (computed in __init__).
         """
-        return self.values[state]
+        # states = self.mdp.getStates()
+        # for i in range(1, self.iterations):
+        #     for x in states:
+        #         action = self.mdp.getPossibleActions(x)
+        #         transitionStatesAndProbs = self.mdp.getTransitionStatesAndProbs(x, action)
+        #         outcome = list(chain.from_iterable(transitionStatesAndProbs))
+        #         probabilities = transitionStatesAndProbs[outcome]
+        #         self.values[x] = probabilities * (mdp.getReward(x, action, outcome) + (self.discount * Val[outcome]))
+        #
+        # return self.values[state]
 
 
     def computeQValueFromValues(self, state, action):
