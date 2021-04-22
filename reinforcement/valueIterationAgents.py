@@ -55,6 +55,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         states = mdp.getStates()
         Val = self.values
         # oldVal = 0
+        maxi = 0
 
         for i in range(1, self.iterations):
             for x in states:
@@ -62,7 +63,11 @@ class ValueIterationAgent(ValueEstimationAgent):
                 transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(x, action) #Gives tuples of (newState, probability of ending in state)
                 outcome = list(chain.from_iterable(transitionStatesAndProbs)) #new state
                 probabilities = transitionStatesAndProbs[outcome] #probability of ending in state
-                Val[x] = probabilities * (mdp.getReward(x, action, outcome) + (self.discount * Val[outcome]))
+                for a in action:
+                    Val[x] = probabilities * (mdp.getReward(x, action, outcome) + (self.discount * Val[outcome]))
+                    if(maxi < Val[x]):
+                        maxi = Val[x]
+
                 #sum over outcomes
                 #take max of actions... but how?
 
