@@ -19,7 +19,8 @@
 
 
 import mdp, util, copy
-from itertools import chain
+# import numpy as np
+# from itertools import chain
 
 from learningAgents import ValueEstimationAgent
 
@@ -55,18 +56,25 @@ class ValueIterationAgent(ValueEstimationAgent):
         states = mdp.getStates()
         Val = self.values
         # oldVal = 0
-        maxi = 0
 
-        for i in range(1, self.iterations):
+        for i in range(0, self.iterations):
+            Valplus1 = copy.copy(Val)
             for x in states:
                 action = mdp.getPossibleActions(x) #Get actions you can from current state
                 transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(x, action) #Gives tuples of (newState, probability of ending in state)
-                outcome = list(chain.from_iterable(transitionStatesAndProbs)) #new state
-                probabilities = transitionStatesAndProbs[outcome] #probability of ending in state
+                outcomes = [i[0] for i in transitionStatesAndProbs] #Only gets keys (newState) from tuple (newState, probability of ending in state)
+                probabilities = [i[1] for i in transitionStatesAndProbs] #probability of ending in state
+                expected_values = list()
                 for a in action:
-                    Val[x] = probabilities * (mdp.getReward(x, action, outcome) + (self.discount * Val[outcome]))
-                    if(maxi < Val[x]):
-                        maxi = Val[x]
+                    current_sum = 0
+                    for y in outcomes:
+                        for z in probabilities:
+                            current_sum += z * (mdp.getReward(x, action, y) + (self.discount * Val[y])) #sum over outcomes
+                    expected_values.append(current_sum) #add current sum for iteration for certain action
+                Valplus1[x] = max(expected_values) #Take max of all actions
+            Val = Valplus1 #Update values
+
+        self.values = Val
 
                 #sum over outcomes
                 #take max of actions... but how?
@@ -91,16 +99,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
           Return the value of the state (computed in __init__).
         """
-        # states = self.mdp.getStates()
-        # for i in range(1, self.iterations):
-        #     for x in states:
-        #         action = self.mdp.getPossibleActions(x)
-        #         transitionStatesAndProbs = self.mdp.getTransitionStatesAndProbs(x, action)
-        #         outcome = list(chain.from_iterable(transitionStatesAndProbs))
-        #         probabilities = transitionStatesAndProbs[outcome]
-        #         self.values[x] = probabilities * (mdp.getReward(x, action, outcome) + (self.discount * Val[outcome]))
-        #
-        # return self.values[state]
+        return self.values[state]
 
 
     def computeQValueFromValues(self, state, action):
