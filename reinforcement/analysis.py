@@ -1,3 +1,8 @@
+"LAURA NEFF"
+"laura.neff@emory.edu/lneff2/2304477"
+"THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING "
+"ANY# SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. LAURA NEFF"
+
 # analysis.py
 # -----------
 # Licensing Information:  You are free to use or extend these projects for 
@@ -26,37 +31,37 @@ def question2():
     return answerDiscount, answerNoise
 
 def question3a():
-    answerDiscount = None
-    answerNoise = None
-    answerLivingReward = None
+    answerDiscount = .9 #Trust our old measurements? Or do we keep rechecking at each step? Long-term or short-term gains?
+    answerNoise = .01 #How often do we get something different than we expected? Spontaneousness! Consistency!
+    answerLivingReward = -5 #The pressure of reaching out goal
     return answerDiscount, answerNoise, answerLivingReward
     # If not possible, return 'NOT POSSIBLE'
 
 def question3b():
-    answerDiscount = None
-    answerNoise = None
-    answerLivingReward = None
+    answerDiscount = .01 #We don't trust our old measurements
+    answerNoise = .01 #Action not different than what we expected
+    answerLivingReward = -1 #Not a pressure to be careful
     return answerDiscount, answerNoise, answerLivingReward
     # If not possible, return 'NOT POSSIBLE'
 
 def question3c():
-    answerDiscount = None
-    answerNoise = None
-    answerLivingReward = None
+    answerDiscount = .9 #We trust our measurements
+    answerNoise = .01 #Action not different than what we expected
+    answerLivingReward = -1 #Low pressure
     return answerDiscount, answerNoise, answerLivingReward
     # If not possible, return 'NOT POSSIBLE'
 
 def question3d():
-    answerDiscount = None
-    answerNoise = None
-    answerLivingReward = None
+    answerDiscount = .9
+    answerNoise = .5
+    answerLivingReward = -1
     return answerDiscount, answerNoise, answerLivingReward
     # If not possible, return 'NOT POSSIBLE'
 
 def question3e():
-    answerDiscount = None
-    answerNoise = None
-    answerLivingReward = None
+    answerDiscount = .9
+    answerNoise = .01
+    answerLivingReward = 5
     return answerDiscount, answerNoise, answerLivingReward
     # If not possible, return 'NOT POSSIBLE'
 
