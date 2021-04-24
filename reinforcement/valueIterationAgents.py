@@ -60,18 +60,22 @@ class ValueIterationAgent(ValueEstimationAgent):
         for i in range(0, self.iterations):
             Valplus1 = copy.copy(Val)
             for x in states:
-                action = mdp.getPossibleActions(x) #Get actions you can from current state
-                transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(x, action) #Gives tuples of (newState, probability of ending in state)
-                outcomes = [i[0] for i in transitionStatesAndProbs] #Only gets keys (newState) from tuple (newState, probability of ending in state)
-                probabilities = [i[1] for i in transitionStatesAndProbs] #probability of ending in state
+                action = mdp.getPossibleActions(x) #Get list of actions you can from current state
                 expected_values = list()
                 for a in action:
+                    transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(x, action)  # Gives tuples of (newState, probability of ending in state)
+                    # outcomes = [i[0] for i in transitionStatesAndProbs]  # Only gets keys (newState) from tuple (newState, probability of ending in state)
+                    # probabilities = [i[1] for i in transitionStatesAndProbs]  # probability of ending in state
                     current_sum = 0
-                    for y in outcomes:
-                        for z in probabilities:
-                            current_sum += z * (mdp.getReward(x, action, y) + (self.discount * Val[y])) #sum over outcomes
+                    # for y in outcomes:
+                    #     for z in probabilities:
+                    for y, z in transitionStatesAndProbs:
+                        current_sum += z * (mdp.getReward(x, action, y) + (self.discount * Val[y])) #sum over outcomes
                     expected_values.append(current_sum) #add current sum for iteration for certain action
-                Valplus1[x] = max(expected_values) #Take max of all actions
+                if(len(expected_values) == 0 ):
+                    Valplus1[x] = 0
+                else:
+                    Valplus1[x] = max(expected_values) #Take max of all actions
             Val = Valplus1 #Update values
 
         self.values = Val
@@ -108,7 +112,18 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        Val = self.values
+        iteration = 1
+
+        transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(state, action)  # Gives tuples of (newState, probability)
+        current_sum = 0
+        for y, z in transitionStatesAndProbs:
+            current_sum += z * (mdp.getReward(state, action, y) + (self.discount * Val[y]))  # sum over outcomes
+
+        return current_sum
+
+
+        #util.raiseNotDefined()
 
     def computeActionFromValues(self, state):
         """
