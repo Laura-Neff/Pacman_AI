@@ -63,7 +63,7 @@ class ValueIterationAgent(ValueEstimationAgent):
                 action = mdp.getPossibleActions(x) #Get list of actions you can from current state
                 expected_values = list()
                 for a in action:
-                    transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(x, action)  # Gives tuples of (newState, probability of ending in state)
+                    transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(x, a)  # Gives tuples of (newState, probability of ending in state)
                     # outcomes = [i[0] for i in transitionStatesAndProbs]  # Only gets keys (newState) from tuple (newState, probability of ending in state)
                     # probabilities = [i[1] for i in transitionStatesAndProbs]  # probability of ending in state
                     current_sum = 0
@@ -149,11 +149,11 @@ class ValueIterationAgent(ValueEstimationAgent):
                 current_sum += z * (mdp.getReward(state, a, y) + (self.discount * Val[y]))  # sum over outcomes
 
             expected_values.append((current_sum,a))  # add current sum for certain action
-            if (len(expected_values) == 0):
-                 return None
-            else:
-                maxi = max(expected_values)  # Take max of all actions
-                return maxi[1]
+        if (len(expected_values) == 0):
+            return None
+        else:
+            maxi = max(expected_values)  # Take max of all actions
+            return maxi[1]
 
 
 
