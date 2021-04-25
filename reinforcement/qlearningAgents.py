@@ -50,6 +50,7 @@ class QLearningAgent(ReinforcementAgent):
         ReinforcementAgent.__init__(self, **args)
 
         "*** YOUR CODE HERE ***"
+        self.Q = util.Counter()
 
     def getQValue(self, state, action):
         """
@@ -109,9 +110,7 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        Q = util.Counter()
-        Q[state, action] = reward + self.discount * self.computeValueFromQValues(nextState)
-        return Q[state, action]
+        self.Q[state, action] = reward + self.discount * self.computeValueFromQValues(nextState)
 
         # expected_values.append((current_sum, a))
 
