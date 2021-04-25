@@ -75,7 +75,7 @@ class QLearningAgent(ReinforcementAgent):
         "*** YOUR CODE HERE ***"
         #Find best Q-value that is the result of an action
         actions = self.getLegalActions(state)
-        if(len(actions) == 0):
+        if(len(actions) == 0): #If the legalActions list is empty, return 0
             return 0.0
         else:
             Q = list()
@@ -83,7 +83,7 @@ class QLearningAgent(ReinforcementAgent):
                 Q.append((self.getQValue(state, a), a))
 
             maxi = max(Q)  # Take max of all Q-vals
-            return maxi[0]
+            return maxi[0] #return Q-val
 
 
 
@@ -98,7 +98,20 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Find best action to obtain the best Q-value
+        actions = self.getLegalActions(state)
+        if (len(actions) == 0):
+            return 0.0
+        else:
+            Q = list()
+            for a in actions:
+                Q.append((self.getQValue(state, a), a))
+
+            maxi = max(Q)  # Take max of all Q-vals
+            return maxi[1] #return action
+
+
+        #util.raiseNotDefined()
 
     def getAction(self, state):
         """
