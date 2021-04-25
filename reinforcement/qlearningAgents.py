@@ -89,7 +89,7 @@ class QLearningAgent(ReinforcementAgent):
 
 
 
-        #util.raiseNotDefined()
+
 
     def computeActionFromQValues(self, state):
         """
@@ -111,7 +111,7 @@ class QLearningAgent(ReinforcementAgent):
             return maxi[1] #return action
 
 
-        #util.raiseNotDefined()
+
 
     def getAction(self, state):
         """
@@ -145,9 +145,7 @@ class QLearningAgent(ReinforcementAgent):
         sample = reward + self.discount * self.computeValueFromQValues(nextState)
         self.Q[(state, action)] = (1 - self.alpha) * self.getQValue(state, action) + self.alpha * sample
 
-        # expected_values.append((current_sum, a))
 
-        #util.raiseNotDefined()
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
