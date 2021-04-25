@@ -199,7 +199,8 @@ class ApproximateQAgent(PacmanQAgent):
        should work as is.
     """
     def __init__(self, extractor='IdentityExtractor', **args):
-        self.featExtractor = util.lookup(extractor, globals())()
+        self.featExtractor = util.lookup(extractor, globals())() #feat = feature representation, this code finds function
+                                                                 # according to features (feature extraction function)
         PacmanQAgent.__init__(self, **args)
         self.weights = util.Counter()
 
@@ -212,14 +213,38 @@ class ApproximateQAgent(PacmanQAgent):
           where * is the dotProduct operator
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        features = self.featExtractor.getFeatures(state,action)
+        Q = 0
+        for f in features.keys(): #Find all keys in feature function dictionary because key is shared with weight
+                                  #Depending on function val, you will get a particular weight
+           Q += self.weights[f] * features[f] #Do formula
+
+        return Q
+
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = self.getLegalActions(nextState)
+        if (len(actions) == 0):  # If the legalActions list is empty, return 0
+            maximum = 0.0
+        else:
+            Q = list()
+            for a in actions:
+                Q.append((self.getQValue(nextState, a), a))
+
+            maxi = max(Q)  # Take max of all Q-vals
+            maximum = maxi[0]
+
+        difference = (reward + self.discount * maximum) - self.getQValue(state, action)
+
+        features = self.featExtractor.getFeatures(state, action)
+        for f in features.keys():
+            self.weights[f] = self.weights[f] + (self.alpha * difference) * features[f]
+
+
 
     def final(self, state):
         "Called at the end of each game."
