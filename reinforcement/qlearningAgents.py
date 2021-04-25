@@ -128,7 +128,18 @@ class QLearningAgent(ReinforcementAgent):
         legalActions = self.getLegalActions(state)
         action = None
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # self.epsilon
+        # p = util.flipCoin() #Flip a coin
+        if(util.flipCoin(self.epsilon)): #If probability is determined to be epsilon
+            random.choice(legalActions)
+        else:
+            print ("Act on current policy")
+
+
+
+
+
+        #util.raiseNotDefined()
 
         return action
 
