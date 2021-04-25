@@ -110,7 +110,8 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        self.Q[state, action] = reward + self.discount * self.computeValueFromQValues(nextState)
+        sample = reward + self.discount * self.computeValueFromQValues(nextState)
+        self.Q[(state, action)] = (1 - self.alpha) * self.getQValue(state, action) + self.alpha * sample
 
         # expected_values.append((current_sum, a))
 
