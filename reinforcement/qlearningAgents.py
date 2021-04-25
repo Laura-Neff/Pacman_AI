@@ -111,7 +111,7 @@ class QLearningAgent(ReinforcementAgent):
         "*** YOUR CODE HERE ***"
         Q = util.Counter()
         Q[state, action] = reward + self.discount * self.computeValueFromQValues(nextState)
-
+        return Q[state, action]
 
         # expected_values.append((current_sum, a))
 
