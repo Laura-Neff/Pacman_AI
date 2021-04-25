@@ -73,7 +73,23 @@ class QLearningAgent(ReinforcementAgent):
           terminal state, you should return a value of 0.0.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #Find best Q-value that is the result of an action
+        actions = self.getLegalActions(state)
+        if(len(actions) == 0):
+            return 0.0
+        else:
+            Q = list()
+            for a in actions:
+                Q.append((self.getQValue(state, a), a))
+
+            maxi = max(Q)  # Take max of all Q-vals
+            return maxi[0]
+
+
+
+
+
+        #util.raiseNotDefined()
 
     def computeActionFromQValues(self, state):
         """
