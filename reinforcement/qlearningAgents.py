@@ -1,3 +1,9 @@
+
+"LAURA NEFF"
+"laura.neff@emory.edu/lneff2/2304477"
+"THIS CODE WAS MY OWN WORK, IT WAS WRITTEN WITHOUT CONSULTING "
+"ANY# SOURCES OUTSIDE OF THOSE APPROVED BY THE INSTRUCTOR. LAURA NEFF"
+
 # qlearningAgents.py
 # ------------------
 # Licensing Information:  You are free to use or extend these projects for 
@@ -103,7 +109,13 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        Q = util.Counter()
+        Q[state, action] = reward + self.discount * self.computeValueFromQValues(nextState)
+
+
+        # expected_values.append((current_sum, a))
+
+        #util.raiseNotDefined()
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
