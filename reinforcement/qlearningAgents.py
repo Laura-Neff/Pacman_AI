@@ -214,12 +214,14 @@ class ApproximateQAgent(PacmanQAgent):
           Should return Q(state,action) = w * featureVector
           where * is the dotProduct operator
         """
-        "*** YOUR CODE HERE ***"
-        features = self.featExtractor.getFeatures(state,action)
-        Q = 0
+
+        #Q(state,action) = w1 * f1(state,action) + w2 * f2(state,action) + ...  wn * fn(state,action)
+
+        features = self.featExtractor.getFeatures(state,action) #Returns a dict from features to counts
+        Q = 0 #initialize Q(state,action) to 0
         for f in features.keys(): #Find all keys in feature function dictionary because key is shared with weight
-                                  #Depending on function val, you will get a particular weight
-           Q += self.weights[f] * features[f] #Do formula
+                                  #Depending on function, you will get a particular weight
+           Q += self.weights[f] * features[f] #Do formula described at top of method
 
         return Q
 
@@ -228,18 +230,23 @@ class ApproximateQAgent(PacmanQAgent):
         """
            Should update your weights based on transition
         """
-        "*** YOUR CODE HERE ***"
-        actions = self.getLegalActions(nextState)
+
+        #difference = [reward + discountVal * max outcomeActions{Q(outcomeState,outcomeAction)}] - Q(state,action)
+        #weight = weight + [alpha * difference * function(state,action)]
+
+        actions = self.getLegalActions(nextState) #find all legal actions of the nextState/outcome state
         if (len(actions) == 0):  # If the legalActions list is empty, return 0
             maximum = 0.0
         else:
-            Q = list()
-            for a in actions:
-                Q.append((self.getQValue(nextState, a), a))
+            Q = list() #initialize list to hold Q-vals
+            for a in actions: #traverse through all legal actions of next state
+                Q.append((self.getQValue(nextState, a), a)) #store all Q-vals according to each outcome action and record linked outcome action
 
             maxi = max(Q)  # Take max of all Q-vals
-            maximum = maxi[0]
+            maximum = maxi[0] #record max Q-val
 
+
+        #Now bring formulas at top of method together to do approximate Q-val update
         difference = (reward + self.discount * maximum) - self.getQValue(state, action)
 
         features = self.featExtractor.getFeatures(state, action)
