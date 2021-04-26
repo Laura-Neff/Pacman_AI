@@ -26,51 +26,65 @@
 # value iteration.
 
 def question2():
+    #When the agent thinks more about long-term gains and the agent ends up where it is expected most of the time
+    #the optimal policy causes the agent to cross the bridge
     answerDiscount = 0.9
     answerNoise = .001
     return answerDiscount, answerNoise
 
 def question3a():
-    answerDiscount = .9 #Trust our old measurements? Or do we keep rechecking at each step? Long-term or short-term gains?
-    answerNoise = .01 #How often do we get something different than we expected? Spontaneousness! Consistency!
-    answerLivingReward = -5 #The pressure of reaching out goal
+    #When agent thinks about long-term gains, ends up where expected, and is highly motivated to reach goal
+    #it prefers the close exit and risks the cliff
+    answerDiscount = .9 #Agent cares about long-term or short-term gains?
+    answerNoise = .01 #How often do we get something different than we expected? Randomness vs. expected
+    answerLivingReward = -5 #The pressure of reaching our goal
     return answerDiscount, answerNoise, answerLivingReward
-    # If not possible, return 'NOT POSSIBLE'
+
 
 def question3b():
-    answerDiscount = .01 #We don't trust our old measurements
-    answerNoise = .01 #Action not different than what we expected
-    answerLivingReward = -1 #Not a pressure to be careful
+    #When the agent only cares about short-term gains, ends up where expected, and isn't pressured all that much to
+    #reach goal, it prefers the close exit but avoids the cliff
+    answerDiscount = .01 #Thinks about short-term gains
+    answerNoise = .01 #Agent gets where expected
+    answerLivingReward = -1 #No pressure to reach goal -- can be careful
     return answerDiscount, answerNoise, answerLivingReward
-    # If not possible, return 'NOT POSSIBLE'
+
 
 def question3c():
-    answerDiscount = .9 #We trust our measurements
-    answerNoise = .01 #Action not different than what we expected
-    answerLivingReward = -1 #Low pressure
+    #When agent thinks long term, gets where expected, and isn't pressured to reach goal, it prefers the distant exit
+    #and risks the cliff
+    answerDiscount = .9 #thinks long-term
+    answerNoise = .01 #agent gets where expected
+    answerLivingReward = -1 #Low pressure to reach goal
     return answerDiscount, answerNoise, answerLivingReward
-    # If not possible, return 'NOT POSSIBLE'
+
 
 def question3d():
-    answerDiscount = .9
-    answerNoise = .5
-    answerLivingReward = -1
+    #when agent thinks about long-term gains, doesn't end up where expected a lot, and isn't pressured to reach goal,
+    #it prefers the distant exit and avoids the cliff
+    answerDiscount = .9 #thinks long-term
+    answerNoise = .5 #agent doesn't end up where expected a lot
+    answerLivingReward = -1 #not pressured to reach goal
     return answerDiscount, answerNoise, answerLivingReward
-    # If not possible, return 'NOT POSSIBLE'
+
 
 def question3e():
-    answerDiscount = .9
-    answerNoise = .01
-    answerLivingReward = 5
+    #when agent thinks about long-term gains, ends up where expected most the time, and there's a huge reward for reaching
+    #the goal, it avoids both exits and the cliff so an episode should never terminate
+    answerDiscount = .9 #thinks about long-term gains
+    answerNoise = .01 #agent ends where expected most the time
+    answerLivingReward = 5 #huge reward for reaching goal
     return answerDiscount, answerNoise, answerLivingReward
-    # If not possible, return 'NOT POSSIBLE'
 
 def question6():
+    #There is no epsilon and learning rate such that it is greater than 99% that the optimal policy
+    #will be learned after 50 iterations
+
+    #I will keep these variables to represent that there is no such epsilon and learning rate
+    #to the reader of the code
     answerEpsilon = 0
     answerLearningRate = 0
-    #return answerEpsilon, answerLearningRate
     return "NOT POSSIBLE"
-    # If not possible, return 'NOT POSSIBLE'
 
 if __name__ == '__main__':
     print 'Answers to analysis questions:'
