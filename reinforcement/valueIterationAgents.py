@@ -51,51 +51,32 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
 
-        # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+
         states = mdp.getStates()
         Val = self.values
-        # oldVal = 0
 
-        for i in range(0, self.iterations):
-            Valplus1 = copy.copy(Val)
-            for s in states:
+        #Val iteration function:
+        #value of state = max action{sum over outcome states{prob of ending in state * reward from taking action + discountVal * val state end up in}}
+
+        for i in range(0, self.iterations): #Update value until we get to the last iteration
+            Valplus1 = copy.copy(Val) #Make a copy of the values so we can update it later, offline
+            for s in states: #for each state
                 actions = mdp.getPossibleActions(s) #Get list of actions you can from current state
-                expected_values = list()
-                for a in actions:
+                expected_values = list() #make a list to hold the sums for each action
+                for a in actions: #for each action
                     transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(s, a)  # Gives tuples of (newState, probability of ending in state)
-                    # outcomes = [i[0] for i in transitionStatesAndProbs]  # Only gets keys (newState) from tuple (newState, probability of ending in state)
-                    # probabilities = [i[1] for i in transitionStatesAndProbs]  # probability of ending in state
-                    current_sum = 0
-                    # for y in outcomes:
-                    #     for z in probabilities:
-                    for outcome, prob in transitionStatesAndProbs:
+                    current_sum = 0 #initialize variable to hold sumOutcome{probEndingInState * rewardFromAction + discountVal * outcomeStateVal}
+                    for outcome, prob in transitionStatesAndProbs: #for each outcome and probability
                         current_sum += prob * (mdp.getReward(s, a, outcome) + (self.discount * Val[outcome])) #sum over outcomes
-                    expected_values.append(current_sum) #add current sum for iteration for certain action
-                if(len(expected_values) == 0 ):
+                    expected_values.append(current_sum) #store all the current sums influenced by each action
+                if(len(expected_values) == 0 ): #if nothing was added to expected_values list, then there is no value
                     Valplus1[s] = 0
                 else:
-                    Valplus1[s] = max(expected_values) #Take max of all actions
-            Val = Valplus1 #Update values
+                    Valplus1[s] = max(expected_values) #this finds the highest sum resulting from a certain action
+            Val = Valplus1 #Update value
 
-        self.values = Val
+        self.values = Val #update values
 
-                #sum over outcomes
-                #take max of actions... but how?
-
-
-                # oldVal = Val[x]
-
-        # for x in states:
-        #     action = mdp.getPossibleActions(x)
-        #     transitionState = mdp.getTransitionStatesAndProbs(x, action)
-        #     print(transitionState)
-
-
-        # print(self.values)
-        # for x in states:
-            #Val.append(0)
-            # print(x)
 
 
 
@@ -111,20 +92,23 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        #We have one state, one iteration
+
+        #We have one state, one iteration this time
+        #same equation as above, but without max action part
+
+        #Q(state, action) = {sum over outcome states{prob of ending in state * reward from taking action + discountVal * val state end up in}
+
         mdp = self.mdp
         Val = self.values
 
         transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(state, action)  # Gives tuples of (newState, probability)
-        current_sum = 0
+        current_sum = 0 #variable to old sum over outcomes of the equation
         for outcome, prob in transitionStatesAndProbs:
-            current_sum += prob * (mdp.getReward(state, action, outcome) + (self.discount * Val[outcome]))  # sum over outcomes
+            current_sum += prob * (mdp.getReward(state, action, outcome) + (self.discount * Val[outcome]))  # sum over outcomes like before
 
-        return current_sum
+        return current_sum #just return the sum
 
 
-        #util.raiseNotDefined()
 
     def computeActionFromValues(self, state):
         """
@@ -135,31 +119,33 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
+
         #We have one state, one iteration
+        #policy(state) = arg max action{Q(state,action)}
         mdp = self.mdp
         actions = mdp.getPossibleActions(state)  # Get list of actions you can from current state
         Val = self.values
-        expected_values = list()
+        expected_values = list() #will hold Q(state, action) and action that led to that
 
-        for a in actions:
+
+        for a in actions: #traverse through actions
             transitionStatesAndProbs = mdp.getTransitionStatesAndProbs(state,a)  # Gives tuples of (newState, probability)
             current_sum = 0
-            for outcome, prob in transitionStatesAndProbs:
+            for outcome, prob in transitionStatesAndProbs: #We will calculate Q(state, action) and store in current_sum
                 current_sum += prob * (mdp.getReward(state, a, outcome) + (self.discount * Val[outcome]))  # sum over outcomes
 
-            expected_values.append((current_sum,a))  # add current sum for certain action
-        if (len(expected_values) == 0):
+            expected_values.append((current_sum,a))  # add current sum for certain action to our list
+        if (len(expected_values) == 0): #if nothing added to list, return None
             return None
         else:
             maxi = max(expected_values)  # Take max of all actions
-            return maxi[1]
+            return maxi[1] #return action that led to highest Q(state,action)
 
 
 
 
 
-        #util.raiseNotDefined()
+
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
